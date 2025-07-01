@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TextInput } from 'react-native';
-import { X, Plus, Minus, Home, Building, PartyPopper, MapPin } from 'lucide-react-native';
+import { X, Plus, Minus, Chrome as Home, Building, PartyPopper, MapPin } from 'lucide-react-native';
 
 interface OrderModalProps {
   visible: boolean;
