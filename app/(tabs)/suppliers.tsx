@@ -10,10 +10,13 @@ import {
   Zap,
   ChevronRight
 } from 'lucide-react-native';
+import OrderModal from '@/components/OrderModal';
 
 export default function SuppliersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [orderModalVisible, setOrderModalVisible] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
 
   const filters = [
     { id: 'all', label: 'All' },
@@ -90,6 +93,11 @@ export default function SuppliersScreen() {
       availability: 'Busy'
     },
   ];
+
+  const handleOrderPress = (supplier: any) => {
+    setSelectedSupplier(supplier);
+    setOrderModalVisible(true);
+  };
 
   return (
     <View style={styles.container}>
@@ -207,7 +215,10 @@ export default function SuppliersScreen() {
                 
                 <View style={styles.priceRow}>
                   <Text style={styles.price}>{supplier.price}</Text>
-                  <TouchableOpacity style={styles.orderButton}>
+                  <TouchableOpacity 
+                    style={styles.orderButton}
+                    onPress={() => handleOrderPress(supplier)}
+                  >
                     <Text style={styles.orderButtonText}>Order</Text>
                     <Zap size={14} color="#FFFFFF" />
                   </TouchableOpacity>
@@ -219,6 +230,15 @@ export default function SuppliersScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Order Modal */}
+      {selectedSupplier && (
+        <OrderModal
+          visible={orderModalVisible}
+          onClose={() => setOrderModalVisible(false)}
+          supplier={selectedSupplier}
+        />
+      )}
     </View>
   );
 }

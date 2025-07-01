@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, User, Store } from 'lucide-react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userType, setUserType] = useState<'customer' | 'supplier'>('customer');
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -21,8 +22,12 @@ export default function LoginScreen() {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      // Navigate to main app
-      router.replace('/(tabs)');
+      // Navigate based on user type
+      if (userType === 'supplier') {
+        router.replace('/(supplier-tabs)');
+      } else {
+        router.replace('/(tabs)');
+      }
     }, 1500);
   };
 
@@ -37,6 +42,44 @@ export default function LoginScreen() {
         </TouchableOpacity>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Sign in to your account</Text>
+      </View>
+
+      {/* User Type Selection */}
+      <View style={styles.userTypeContainer}>
+        <Text style={styles.userTypeLabel}>I am a:</Text>
+        <View style={styles.userTypeButtons}>
+          <TouchableOpacity
+            style={[
+              styles.userTypeButton,
+              userType === 'customer' && styles.userTypeButtonActive
+            ]}
+            onPress={() => setUserType('customer')}
+          >
+            <User size={20} color={userType === 'customer' ? '#FFFFFF' : '#64748B'} />
+            <Text style={[
+              styles.userTypeText,
+              userType === 'customer' && styles.userTypeTextActive
+            ]}>
+              Customer
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.userTypeButton,
+              userType === 'supplier' && styles.userTypeButtonActive
+            ]}
+            onPress={() => setUserType('supplier')}
+          >
+            <Store size={20} color={userType === 'supplier' ? '#FFFFFF' : '#64748B'} />
+            <Text style={[
+              styles.userTypeText,
+              userType === 'supplier' && styles.userTypeTextActive
+            ]}>
+              Water Supplier
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.form}>
@@ -87,7 +130,7 @@ export default function LoginScreen() {
           disabled={loading}
         >
           <Text style={styles.loginButtonText}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in...' : `Sign In as ${userType === 'customer' ? 'Customer' : 'Supplier'}`}
           </Text>
         </TouchableOpacity>
 
@@ -150,6 +193,50 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#64748B',
+  },
+  userTypeContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  userTypeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  userTypeButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  userTypeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  userTypeButtonActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  userTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginLeft: 8,
+  },
+  userTypeTextActive: {
+    color: '#FFFFFF',
   },
   form: {
     flex: 1,
