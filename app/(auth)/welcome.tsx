@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Droplets, Shield, Zap, Star } from 'lucide-react-native';
+import { Droplets, Shield, Zap, Star, Waves, Clock, Recycle } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -10,38 +10,52 @@ export default function WelcomeScreen() {
 
   const features = [
     {
-      icon: <Droplets size={24} color="#2563EB" />,
+      icon: <Droplets size={24} color="#0EA5E9" />,
       title: 'Pure Quality',
-      description: 'Certified water suppliers with guaranteed quality'
+      description: 'Certified water suppliers with guaranteed purity'
     },
     {
-      icon: <Zap size={24} color="#2563EB" />,
-      title: 'Fast Delivery',
-      description: 'Quick delivery with real-time tracking'
+      icon: <Zap size={24} color="#0EA5E9" />,
+      title: 'Lightning Fast',
+      description: '10-minute express delivery with live tracking'
     },
     {
-      icon: <Shield size={24} color="#2563EB" />,
-      title: 'Trusted Suppliers',
+      icon: <Shield size={24} color="#0EA5E9" />,
+      title: 'Trusted Network',
       description: 'Verified suppliers with transparent reviews'
     },
     {
-      icon: <Star size={24} color="#2563EB" />,
+      icon: <Recycle size={24} color="#0EA5E9" />,
       title: 'Eco Rewards',
-      description: 'Earn points for returning empty jars'
+      description: 'Earn points for returning empty containers'
     }
   ];
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#2563EB', '#3B82F6']}
+        colors={['#0EA5E9', '#2563EB']}
         style={styles.header}
       >
         <View style={styles.logoContainer}>
-          <Droplets size={60} color="#FFFFFF" strokeWidth={1.5} />
+          <View style={styles.waterDropContainer}>
+            <View style={styles.waterDrop}>
+              <Droplets size={50} color="#FFFFFF" strokeWidth={1.5} />
+            </View>
+            <View style={styles.waterWaves}>
+              <Waves size={30} color="rgba(255, 255, 255, 0.6)" strokeWidth={1} />
+            </View>
+          </View>
         </View>
         <Text style={styles.title}>Welcome to AquaLink</Text>
         <Text style={styles.subtitle}>Your trusted water delivery partner</Text>
+        
+        {/* Water-themed decorative elements */}
+        <View style={styles.decorativeElements}>
+          <View style={[styles.bubble, styles.bubble1]} />
+          <View style={[styles.bubble, styles.bubble2]} />
+          <View style={[styles.bubble, styles.bubble3]} />
+        </View>
       </LinearGradient>
 
       <View style={styles.content}>
@@ -59,12 +73,33 @@ export default function WelcomeScreen() {
           ))}
         </View>
 
+        {/* Trust indicators */}
+        <View style={styles.trustIndicators}>
+          <View style={styles.trustItem}>
+            <Clock size={16} color="#059669" />
+            <Text style={styles.trustText}>10-min delivery</Text>
+          </View>
+          <View style={styles.trustItem}>
+            <Shield size={16} color="#059669" />
+            <Text style={styles.trustText}>Quality assured</Text>
+          </View>
+          <View style={styles.trustItem}>
+            <Star size={16} color="#F59E0B" />
+            <Text style={styles.trustText}>4.8★ rated</Text>
+          </View>
+        </View>
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={() => router.push('/(auth)/signup')}
           >
-            <Text style={styles.primaryButtonText}>Get Started</Text>
+            <LinearGradient
+              colors={['#0EA5E9', '#2563EB']}
+              style={styles.primaryButtonGradient}
+            >
+              <Text style={styles.primaryButtonText}>Get Started</Text>
+            </LinearGradient>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -91,26 +126,74 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
+    position: 'relative',
+    overflow: 'hidden',
   },
   logoContainer: {
+    marginBottom: 20,
+    position: 'relative',
+  },
+  waterDropContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waterDrop: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  waterWaves: {
+    position: 'absolute',
+    bottom: -15,
+    opacity: 0.7,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
+  },
+  decorativeElements: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bubble: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 50,
+  },
+  bubble1: {
+    width: 20,
+    height: 20,
+    top: 80,
+    right: 30,
+  },
+  bubble2: {
+    width: 12,
+    height: 12,
+    top: 120,
+    left: 40,
+  },
+  bubble3: {
+    width: 16,
+    height: 16,
+    bottom: 60,
+    right: 50,
   },
   content: {
     flex: 1,
@@ -137,7 +220,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#EBF4FF',
+    backgroundColor: '#F0F9FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -156,15 +239,45 @@ const styles = StyleSheet.create({
     color: '#64748B',
     lineHeight: 20,
   },
+  trustIndicators: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  trustItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trustText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginLeft: 4,
+  },
   buttonContainer: {
     paddingBottom: 32,
   },
   primaryButton: {
-    backgroundColor: '#2563EB',
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  primaryButtonGradient: {
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 16,
   },
   primaryButtonText: {
     color: '#FFFFFF',
@@ -176,7 +289,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#2563EB',
+    color: '#0EA5E9',
     fontSize: 16,
     fontWeight: '500',
   },

@@ -6,7 +6,7 @@ export default function SupplierTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#2563EB',
+        tabBarActiveTintColor: '#0EA5E9',
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -15,6 +15,11 @@ export default function SupplierTabLayout() {
           paddingTop: 8,
           paddingBottom: 8,
           height: 60,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,

@@ -1,12 +1,12 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Search, Package, User } from 'lucide-react-native';
+import { Droplets, Search, Package, User } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#2563EB',
+        tabBarActiveTintColor: '#0EA5E9',
         tabBarInactiveTintColor: '#64748B',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -15,6 +15,11 @@ export default function TabLayout() {
           paddingTop: 8,
           paddingBottom: 8,
           height: 60,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -28,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ size, color }) => (
-            <Home size={size} color={color} />
+            <Droplets size={size} color={color} />
           ),
         }}
       />
