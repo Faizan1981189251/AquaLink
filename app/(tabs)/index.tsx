@@ -21,12 +21,16 @@ import {
   Timer,
   Leaf,
   TrendingUp,
-  Package
+  Package,
+  MessageCircle,
+  Bot
 } from 'lucide-react-native';
+import AIChatbot from '@/components/AIChatbot';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [chatbotVisible, setChatbotVisible] = useState(false);
   const [quickOrderCounts, setQuickOrderCounts] = useState({
     jar20L: 0,
     bottle1L: 0,
@@ -184,12 +188,20 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>Good Morning</Text>
             <Text style={styles.userName}>John Doe</Text>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Bell size={24} color="#FFFFFF" />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationCount}>2</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={styles.chatbotButton}
+              onPress={() => setChatbotVisible(true)}
+            >
+              <Bot size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Bell size={24} color="#FFFFFF" />
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationCount}>2</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.locationContainer}>
@@ -221,6 +233,25 @@ export default function HomeScreen() {
           <Text style={styles.deliveryPromiseText}>10-Minute Express Delivery Available</Text>
         </View>
       </LinearGradient>
+
+      {/* AI Assistant Quick Access */}
+      <TouchableOpacity 
+        style={styles.aiAssistantCard}
+        onPress={() => setChatbotVisible(true)}
+      >
+        <View style={styles.aiAssistantIcon}>
+          <Bot size={24} color="#2563EB" />
+        </View>
+        <View style={styles.aiAssistantContent}>
+          <Text style={styles.aiAssistantTitle}>Need Help? Ask AquaBot!</Text>
+          <Text style={styles.aiAssistantSubtitle}>
+            Get instant answers about orders, deliveries, and more
+          </Text>
+        </View>
+        <View style={styles.aiAssistantAction}>
+          <MessageCircle size={20} color="#2563EB" />
+        </View>
+      </TouchableOpacity>
 
       {/* AI Stock Reminder */}
       {stockReminder.show && (
@@ -406,6 +437,12 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* AI Chatbot */}
+      <AIChatbot 
+        visible={chatbotVisible}
+        onClose={() => setChatbotVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -440,6 +477,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  chatbotButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   notificationButton: {
     width: 40,
@@ -522,6 +572,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 6,
+  },
+  aiAssistantCard: {
+    backgroundColor: '#EBF4FF',
+    marginHorizontal: 24,
+    marginTop: 20,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#DBEAFE',
+  },
+  aiAssistantIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  aiAssistantContent: {
+    flex: 1,
+  },
+  aiAssistantTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  aiAssistantSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 16,
+  },
+  aiAssistantAction: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   stockReminderCard: {
     backgroundColor: '#FEF3C7',

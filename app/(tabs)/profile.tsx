@@ -21,11 +21,15 @@ import {
   Clock,
   Package,
   Building,
-  Zap
+  Zap,
+  Bot,
+  MessageCircle
 } from 'lucide-react-native';
+import AIChatbot from '@/components/AIChatbot';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const [chatbotVisible, setChatbotVisible] = useState(false);
   const [user] = useState({
     name: 'John Doe',
     email: 'john.doe@example.com',
@@ -47,6 +51,14 @@ export default function ProfileScreen() {
   ];
 
   const quickActions = [
+    {
+      id: 'ai_assistant',
+      icon: <Bot size={20} color="#2563EB" />,
+      title: 'AI Assistant',
+      subtitle: 'Get instant help with AquaBot',
+      action: () => setChatbotVisible(true),
+      badge: 'NEW'
+    },
     {
       id: 'subscription',
       icon: <Calendar size={20} color="#2563EB" />,
@@ -111,8 +123,8 @@ export default function ProfileScreen() {
       id: 'help',
       icon: <HelpCircle size={20} color="#2563EB" />,
       title: 'Help & Support',
-      subtitle: '24/7 customer service',
-      action: () => console.log('Navigate to help'),
+      subtitle: '24/7 AI + human support',
+      action: () => setChatbotVisible(true),
     },
     {
       id: 'settings',
@@ -143,9 +155,17 @@ export default function ProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity style={styles.editButton}>
-          <Edit size={20} color="#2563EB" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.chatbotButton}
+            onPress={() => setChatbotVisible(true)}
+          >
+            <MessageCircle size={20} color="#2563EB" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.editButton}>
+            <Edit size={20} color="#2563EB" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Profile Card */}
@@ -221,7 +241,10 @@ export default function ProfileScreen() {
               <View style={styles.quickActionHeader}>
                 <Text style={styles.quickActionTitle}>{action.title}</Text>
                 {action.badge && (
-                  <View style={styles.quickActionBadge}>
+                  <View style={[
+                    styles.quickActionBadge,
+                    action.badge === 'NEW' && styles.newBadge
+                  ]}>
                     <Text style={styles.quickActionBadgeText}>{action.badge}</Text>
                   </View>
                 )}
@@ -274,8 +297,14 @@ export default function ProfileScreen() {
 
       {/* App Version */}
       <View style={styles.appVersion}>
-        <Text style={styles.versionText}>AquaLink v2.0.0 - Advanced Edition</Text>
+        <Text style={styles.versionText}>AquaLink v2.0.0 - AI Enhanced Edition</Text>
       </View>
+
+      {/* AI Chatbot */}
+      <AIChatbot 
+        visible={chatbotVisible}
+        onClose={() => setChatbotVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -300,6 +329,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#1E293B',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chatbotButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editButton: {
     width: 40,
@@ -505,6 +547,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
+  },
+  newBadge: {
+    backgroundColor: '#DC2626',
   },
   quickActionBadgeText: {
     color: '#FFFFFF',
