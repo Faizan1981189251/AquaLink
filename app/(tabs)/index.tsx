@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
   Droplets, 
@@ -12,17 +12,80 @@ import {
   Recycle,
   ChevronRight,
   Clock,
-  Truck
+  Truck,
+  Mic,
+  RotateCcw,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Timer,
+  Leaf,
+  TrendingUp,
+  Package
 } from 'lucide-react-native';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [quickOrderCounts, setQuickOrderCounts] = useState({
+    jar20L: 0,
+    bottle1L: 0,
+    bottle500ml: 0
+  });
 
-  const quickActions = [
-    { id: 1, title: 'Quick Order', icon: <Zap size={24} color="#FFFFFF" />, color: '#2563EB' },
-    { id: 2, title: 'Schedule', icon: <Clock size={24} color="#FFFFFF" />, color: '#059669' },
-    { id: 3, title: 'Track Order', icon: <Truck size={24} color="#FFFFFF" />, color: '#DC2626' },
-    { id: 4, title: 'Eco Points', icon: <Recycle size={24} color="#FFFFFF" />, color: '#7C3AED' },
+  // AI Stock Reminder State
+  const [stockReminder, setStockReminder] = useState({
+    show: true,
+    item: '20L Jars',
+    daysLeft: 2,
+    lastOrderDate: '3 days ago'
+  });
+
+  const quickOrderItems = [
+    { 
+      id: 'jar20L', 
+      name: '20L Jar', 
+      price: 50, 
+      icon: <Droplets size={24} color="#FFFFFF" />,
+      color: '#2563EB',
+      estimatedStock: 2,
+      avgConsumption: '1 jar/week'
+    },
+    { 
+      id: 'bottle1L', 
+      name: '1L Bottles', 
+      price: 10, 
+      icon: <Package size={24} color="#FFFFFF" />,
+      color: '#059669',
+      estimatedStock: 8,
+      avgConsumption: '12 bottles/week'
+    },
+    { 
+      id: 'bottle500ml', 
+      name: '500ml Bottles', 
+      price: 4, 
+      icon: <Package size={24} color="#FFFFFF" />,
+      color: '#7C3AED',
+      estimatedStock: 15,
+      avgConsumption: '20 bottles/week'
+    }
+  ];
+
+  const recentOrders = [
+    {
+      id: 1,
+      items: '2x 20L Jars',
+      supplier: 'AquaPure Solutions',
+      date: '2 days ago',
+      total: 100
+    },
+    {
+      id: 2,
+      items: '24x 1L Bottles',
+      supplier: 'Crystal Water Co.',
+      date: '1 week ago',
+      total: 240
+    }
   ];
 
   const nearbySuppliers = [
@@ -31,32 +94,83 @@ export default function HomeScreen() {
       name: 'AquaPure Solutions',
       distance: '0.8 km',
       rating: 4.8,
-      deliveryTime: '15-30 min',
+      deliveryTime: '8-12 min',
       image: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
       certified: true,
-      price: '₹25/jar'
+      price: '₹25/jar',
+      expressDelivery: true,
+      available: true
     },
     {
       id: 2,
       name: 'Crystal Water Co.',
       distance: '1.2 km',
       rating: 4.6,
-      deliveryTime: '20-35 min',
+      deliveryTime: '10-15 min',
       image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
       certified: true,
-      price: '₹22/jar'
-    },
-    {
-      id: 3,
-      name: 'Pure Drop Waters',
-      distance: '1.5 km',
-      rating: 4.7,
-      deliveryTime: '25-40 min',
-      image: 'https://images.pexels.com/photos/327090/pexels-photo-327090.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      certified: false,
-      price: '₹20/jar'
-    },
+      price: '₹22/jar',
+      expressDelivery: false,
+      available: true
+    }
   ];
+
+  const handleVoiceSearch = () => {
+    setIsListening(true);
+    // Simulate voice recognition
+    setTimeout(() => {
+      setIsListening(false);
+      setSearchQuery('20 liter water jar');
+      Alert.alert('Voice Search', 'Found: "20 liter water jar"');
+    }, 2000);
+  };
+
+  const updateQuickOrderCount = (itemId: string, change: number) => {
+    setQuickOrderCounts(prev => ({
+      ...prev,
+      [itemId]: Math.max(0, prev[itemId] + change)
+    }));
+  };
+
+  const handleQuickOrder = () => {
+    const totalItems = Object.values(quickOrderCounts).reduce((sum, count) => sum + count, 0);
+    if (totalItems === 0) {
+      Alert.alert('No Items', 'Please select items to order');
+      return;
+    }
+
+    const orderSummary = quickOrderItems
+      .filter(item => quickOrderCounts[item.id] > 0)
+      .map(item => `${quickOrderCounts[item.id]}x ${item.name}`)
+      .join(', ');
+
+    Alert.alert(
+      '1-Click Order Confirmed!',
+      `${orderSummary}\n\nEstimated delivery: 8-12 minutes\nSupplier: AquaPure Solutions`,
+      [
+        { text: 'Track Order', onPress: () => console.log('Navigate to tracking') },
+        { text: 'OK' }
+      ]
+    );
+
+    // Reset counts
+    setQuickOrderCounts({ jar20L: 0, bottle1L: 0, bottle500ml: 0 });
+  };
+
+  const handleReorder = (order: any) => {
+    Alert.alert(
+      'Quick Reorder',
+      `Reorder ${order.items} from ${order.supplier}?\n\nTotal: ₹${order.total}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reorder', onPress: () => Alert.alert('Order Placed!', 'Estimated delivery: 8-12 minutes') }
+      ]
+    );
+  };
+
+  const dismissStockReminder = () => {
+    setStockReminder(prev => ({ ...prev, show: false }));
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -72,6 +186,9 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity style={styles.notificationButton}>
             <Bell size={24} color="#FFFFFF" />
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationCount}>2</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -90,31 +207,131 @@ export default function HomeScreen() {
             onChangeText={setSearchQuery}
             placeholderTextColor="#64748B"
           />
+          <TouchableOpacity 
+            style={[styles.voiceButton, isListening && styles.voiceButtonActive]}
+            onPress={handleVoiceSearch}
+          >
+            <Mic size={20} color={isListening ? "#FFFFFF" : "#2563EB"} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 10-Minute Delivery Promise */}
+        <View style={styles.deliveryPromise}>
+          <Timer size={16} color="#FFFFFF" />
+          <Text style={styles.deliveryPromiseText}>10-Minute Express Delivery Available</Text>
         </View>
       </LinearGradient>
 
-      {/* Quick Actions */}
+      {/* AI Stock Reminder */}
+      {stockReminder.show && (
+        <View style={styles.stockReminderCard}>
+          <View style={styles.stockReminderIcon}>
+            <TrendingUp size={20} color="#F59E0B" />
+          </View>
+          <View style={styles.stockReminderContent}>
+            <Text style={styles.stockReminderTitle}>AI Stock Alert</Text>
+            <Text style={styles.stockReminderText}>
+              Your {stockReminder.item} might run out in {stockReminder.daysLeft} days
+            </Text>
+            <Text style={styles.stockReminderSubtext}>
+              Last order: {stockReminder.lastOrderDate}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.stockReminderAction}
+            onPress={() => Alert.alert('Quick Order', 'Order 2x 20L Jars now?')}
+          >
+            <Text style={styles.stockReminderActionText}>Order Now</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.stockReminderDismiss}
+            onPress={dismissStockReminder}
+          >
+            <Text style={styles.stockReminderDismissText}>×</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* 1-Click Quick Order */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.quickActionsGrid}>
-          {quickActions.map((action) => (
-            <TouchableOpacity
-              key={action.id}
-              style={[styles.quickActionCard, { backgroundColor: action.color }]}
-            >
-              <View style={styles.quickActionIcon}>
-                {action.icon}
+        <Text style={styles.sectionTitle}>1-Click Quick Order</Text>
+        <View style={styles.quickOrderContainer}>
+          {quickOrderItems.map((item) => (
+            <View key={item.id} style={styles.quickOrderCard}>
+              <View style={[styles.quickOrderIcon, { backgroundColor: item.color }]}>
+                {item.icon}
               </View>
-              <Text style={styles.quickActionText}>{action.title}</Text>
-            </TouchableOpacity>
+              <Text style={styles.quickOrderName}>{item.name}</Text>
+              <Text style={styles.quickOrderPrice}>₹{item.price}</Text>
+              <Text style={styles.quickOrderStock}>Stock: ~{item.estimatedStock} days</Text>
+              
+              <View style={styles.quickOrderControls}>
+                <TouchableOpacity
+                  style={styles.quickOrderButton}
+                  onPress={() => updateQuickOrderCount(item.id, -1)}
+                >
+                  <Minus size={16} color="#64748B" />
+                </TouchableOpacity>
+                
+                <Text style={styles.quickOrderCount}>
+                  {quickOrderCounts[item.id]}
+                </Text>
+                
+                <TouchableOpacity
+                  style={styles.quickOrderButton}
+                  onPress={() => updateQuickOrderCount(item.id, 1)}
+                >
+                  <Plus size={16} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+            </View>
           ))}
         </View>
+        
+        <TouchableOpacity 
+          style={styles.quickOrderSubmit}
+          onPress={handleQuickOrder}
+        >
+          <ShoppingCart size={20} color="#FFFFFF" />
+          <Text style={styles.quickOrderSubmitText}>Order in 1-Click</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Nearby Suppliers */}
+      {/* Quick Reorder */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Nearby Suppliers</Text>
+          <Text style={styles.sectionTitle}>Quick Reorder</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {recentOrders.map((order) => (
+          <TouchableOpacity 
+            key={order.id} 
+            style={styles.reorderCard}
+            onPress={() => handleReorder(order)}
+          >
+            <View style={styles.reorderInfo}>
+              <Text style={styles.reorderItems}>{order.items}</Text>
+              <Text style={styles.reorderSupplier}>{order.supplier}</Text>
+              <Text style={styles.reorderDate}>{order.date}</Text>
+            </View>
+            <View style={styles.reorderAction}>
+              <Text style={styles.reorderTotal}>₹{order.total}</Text>
+              <View style={styles.reorderButton}>
+                <RotateCcw size={16} color="#2563EB" />
+                <Text style={styles.reorderButtonText}>Reorder</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Express Delivery Suppliers */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>10-Min Express Delivery</Text>
           <TouchableOpacity>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
@@ -131,6 +348,12 @@ export default function HomeScreen() {
                     <Shield size={12} color="#059669" />
                   </View>
                 )}
+                {supplier.expressDelivery && (
+                  <View style={styles.expressBadge}>
+                    <Zap size={10} color="#FFFFFF" />
+                    <Text style={styles.expressBadgeText}>EXPRESS</Text>
+                  </View>
+                )}
               </View>
               
               <View style={styles.supplierMeta}>
@@ -139,7 +362,10 @@ export default function HomeScreen() {
                   <Text style={styles.rating}>{supplier.rating}</Text>
                 </View>
                 <Text style={styles.distance}>{supplier.distance}</Text>
-                <Text style={styles.deliveryTime}>{supplier.deliveryTime}</Text>
+                <View style={styles.deliveryTimeContainer}>
+                  <Clock size={12} color="#059669" />
+                  <Text style={styles.deliveryTime}>{supplier.deliveryTime}</Text>
+                </View>
               </View>
               
               <View style={styles.supplierFooter}>
@@ -154,27 +380,30 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Eco Stats */}
+      {/* Eco Impact & Subscription */}
       <View style={styles.section}>
         <View style={styles.ecoCard}>
           <View style={styles.ecoHeader}>
-            <Recycle size={24} color="#059669" />
+            <Leaf size={24} color="#059669" />
             <Text style={styles.ecoTitle}>Your Eco Impact</Text>
           </View>
           <View style={styles.ecoStats}>
             <View style={styles.ecoStat}>
-              <Text style={styles.ecoNumber}>12</Text>
+              <Text style={styles.ecoNumber}>18</Text>
               <Text style={styles.ecoLabel}>Jars Returned</Text>
             </View>
             <View style={styles.ecoStat}>
-              <Text style={styles.ecoNumber}>240</Text>
+              <Text style={styles.ecoNumber}>360</Text>
               <Text style={styles.ecoLabel}>Points Earned</Text>
             </View>
             <View style={styles.ecoStat}>
-              <Text style={styles.ecoNumber}>₹60</Text>
-              <Text style={styles.ecoLabel}>Savings</Text>
+              <Text style={styles.ecoNumber}>₹90</Text>
+              <Text style={styles.ecoLabel}>Eco Savings</Text>
             </View>
           </View>
+          <TouchableOpacity style={styles.subscriptionButton}>
+            <Text style={styles.subscriptionButtonText}>Setup Daily Subscription</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -219,6 +448,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#DC2626',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationCount: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
   },
   locationContainer: {
     marginBottom: 20,
@@ -240,6 +486,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 4,
+    marginBottom: 12,
   },
   searchIcon: {
     marginRight: 12,
@@ -249,6 +496,93 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1E293B',
     paddingVertical: 12,
+  },
+  voiceButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voiceButtonActive: {
+    backgroundColor: '#DC2626',
+  },
+  deliveryPromise: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  deliveryPromiseText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  stockReminderCard: {
+    backgroundColor: '#FEF3C7',
+    marginHorizontal: 24,
+    marginTop: 20,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+  },
+  stockReminderIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  stockReminderContent: {
+    flex: 1,
+  },
+  stockReminderTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400E',
+    marginBottom: 2,
+  },
+  stockReminderText: {
+    fontSize: 12,
+    color: '#92400E',
+    marginBottom: 2,
+  },
+  stockReminderSubtext: {
+    fontSize: 10,
+    color: '#A16207',
+  },
+  stockReminderAction: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  stockReminderActionText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  stockReminderDismiss: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stockReminderDismissText: {
+    color: '#92400E',
+    fontSize: 18,
+    fontWeight: '600',
   },
   section: {
     paddingHorizontal: 24,
@@ -270,26 +604,141 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '500',
   },
-  quickActionsGrid: {
+  quickOrderContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 16,
+    marginBottom: 16,
   },
-  quickActionCard: {
-    width: '48%',
+  quickOrderCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    marginBottom: 16,
+    flex: 1,
+    marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  quickActionIcon: {
+  quickOrderIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  quickActionText: {
-    color: '#FFFFFF',
+  quickOrderName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1E293B',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  quickOrderPrice: {
     fontSize: 14,
+    fontWeight: '700',
+    color: '#059669',
+    marginBottom: 4,
+  },
+  quickOrderStock: {
+    fontSize: 10,
+    color: '#64748B',
+    marginBottom: 12,
+  },
+  quickOrderControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    padding: 4,
+  },
+  quickOrderButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quickOrderCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginHorizontal: 12,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  quickOrderSubmit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2563EB',
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  quickOrderSubmitText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  reorderCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  reorderInfo: {
+    flex: 1,
+  },
+  reorderItems: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  reorderSupplier: {
+    fontSize: 12,
+    color: '#64748B',
+    marginBottom: 2,
+  },
+  reorderDate: {
+    fontSize: 10,
+    color: '#94A3B8',
+  },
+  reorderAction: {
+    alignItems: 'flex-end',
+  },
+  reorderTotal: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#059669',
+    marginBottom: 8,
+  },
+  reorderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EBF4FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  reorderButtonText: {
+    fontSize: 12,
+    color: '#2563EB',
     fontWeight: '500',
+    marginLeft: 4,
   },
   supplierCard: {
     backgroundColor: '#FFFFFF',
@@ -327,6 +776,21 @@ const styles = StyleSheet.create({
   certifiedBadge: {
     marginLeft: 8,
   },
+  expressBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginLeft: 4,
+  },
+  expressBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '700',
+    marginLeft: 2,
+  },
   supplierMeta: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -347,9 +811,15 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginRight: 12,
   },
+  deliveryTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   deliveryTime: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#059669',
+    fontWeight: '600',
+    marginLeft: 4,
   },
   supplierFooter: {
     flexDirection: 'row',
@@ -396,6 +866,7 @@ const styles = StyleSheet.create({
   ecoStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 16,
   },
   ecoStat: {
     alignItems: 'center',
@@ -410,5 +881,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
     textAlign: 'center',
+  },
+  subscriptionButton: {
+    backgroundColor: '#059669',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  subscriptionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

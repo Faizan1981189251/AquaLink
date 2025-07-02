@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DollarSign, Package, TrendingUp, Users, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Eye, Bell } from 'lucide-react-native';
+import { DollarSign, Package, TrendingUp, Users, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Eye, Bell, Zap, Navigation, MessageCircle } from 'lucide-react-native';
 
 export default function SupplierDashboardScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState('today');
@@ -13,41 +13,51 @@ export default function SupplierDashboardScreen() {
   ];
 
   const todayStats = {
-    totalOrders: 24,
-    totalEarnings: 1850,
-    pendingOrders: 3,
-    completedOrders: 21,
+    totalOrders: 32,
+    totalEarnings: 2450,
+    pendingOrders: 5,
+    completedOrders: 27,
     avgOrderValue: 77,
-    newCustomers: 5
+    newCustomers: 8,
+    expressOrders: 18,
+    avgDeliveryTime: '9 mins'
   };
 
-  const recentOrders = [
+  const liveOrders = [
     {
       id: '#AQ001240',
       customer: 'Rajesh Kumar',
       items: '2x 20L Jars',
       amount: 100,
-      status: 'pending',
-      time: '10 mins ago',
-      address: 'HSR Layout, Bangalore'
+      status: 'out_for_delivery',
+      time: '5 mins ago',
+      address: 'HSR Layout, Bangalore',
+      deliveryPerson: 'Amit Singh',
+      estimatedDelivery: '3 mins',
+      expressOrder: true,
+      customerPhone: '+91 9876543210'
     },
     {
-      id: '#AQ001239',
+      id: '#AQ001241',
       customer: 'Priya Sharma',
+      items: '24x 1L Bottles',
+      amount: 240,
+      status: 'preparing',
+      time: '8 mins ago',
+      address: 'Koramangala, Bangalore',
+      expressOrder: false,
+      customerPhone: '+91 9876543211'
+    },
+    {
+      id: '#AQ001242',
+      customer: 'Amit Patel',
       items: '1x 20L Jar',
       amount: 50,
-      status: 'completed',
-      time: '25 mins ago',
-      address: 'Koramangala, Bangalore'
-    },
-    {
-      id: '#AQ001238',
-      customer: 'Amit Patel',
-      items: '3x 20L Jars',
-      amount: 150,
-      status: 'in_progress',
-      time: '45 mins ago',
-      address: 'Whitefield, Bangalore'
+      status: 'pending',
+      time: '2 mins ago',
+      address: 'Whitefield, Bangalore',
+      expressOrder: true,
+      customerPhone: '+91 9876543212'
     },
   ];
 
@@ -55,9 +65,11 @@ export default function SupplierDashboardScreen() {
     switch (status) {
       case 'pending':
         return '#F59E0B';
-      case 'in_progress':
+      case 'preparing':
         return '#2563EB';
-      case 'completed':
+      case 'out_for_delivery':
+        return '#059669';
+      case 'delivered':
         return '#059669';
       default:
         return '#64748B';
@@ -68,13 +80,48 @@ export default function SupplierDashboardScreen() {
     switch (status) {
       case 'pending':
         return <Clock size={14} color="#F59E0B" />;
-      case 'in_progress':
+      case 'preparing':
         return <Package size={14} color="#2563EB" />;
-      case 'completed':
+      case 'out_for_delivery':
+        return <Navigation size={14} color="#059669" />;
+      case 'delivered':
         return <CheckCircle size={14} color="#059669" />;
       default:
         return <AlertCircle size={14} color="#64748B" />;
     }
+  };
+
+  const handleAcceptOrder = (orderId: string) => {
+    Alert.alert(
+      'Accept Order',
+      `Accept order ${orderId}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Accept', onPress: () => Alert.alert('Order Accepted!', 'Order has been accepted and is now being prepared.') }
+      ]
+    );
+  };
+
+  const handleAutoAssignDelivery = (orderId: string) => {
+    Alert.alert(
+      'Auto-Assign Delivery',
+      'Automatically assign nearest delivery person?',
+      [
+        { text: 'Manual Assign', style: 'cancel' },
+        { text: 'Auto-Assign', onPress: () => Alert.alert('Delivery Assigned!', 'Nearest delivery person has been automatically assigned.') }
+      ]
+    );
+  };
+
+  const handleContactCustomer = (phone: string) => {
+    Alert.alert(
+      'Contact Customer',
+      `Call customer at ${phone}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Call', onPress: () => Alert.alert('Calling...', phone) }
+      ]
+    );
   };
 
   return (
@@ -92,7 +139,7 @@ export default function SupplierDashboardScreen() {
           <TouchableOpacity style={styles.notificationButton}>
             <Bell size={24} color="#FFFFFF" />
             <View style={styles.notificationBadge}>
-              <Text style={styles.notificationCount}>3</Text>
+              <Text style={styles.notificationCount}>5</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -105,6 +152,10 @@ export default function SupplierDashboardScreen() {
           <View style={styles.quickStat}>
             <Text style={styles.quickStatNumber}>{todayStats.totalOrders}</Text>
             <Text style={styles.quickStatLabel}>Total Orders</Text>
+          </View>
+          <View style={styles.quickStat}>
+            <Text style={styles.quickStatNumber}>{todayStats.avgDeliveryTime}</Text>
+            <Text style={styles.quickStatLabel}>Avg Delivery</Text>
           </View>
         </View>
       </LinearGradient>
@@ -130,7 +181,7 @@ export default function SupplierDashboardScreen() {
         ))}
       </View>
 
-      {/* Stats Grid */}
+      {/* Enhanced Stats Grid */}
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <View style={styles.statIcon}>
@@ -138,7 +189,7 @@ export default function SupplierDashboardScreen() {
           </View>
           <Text style={styles.statNumber}>₹{todayStats.totalEarnings}</Text>
           <Text style={styles.statLabel}>Total Earnings</Text>
-          <Text style={styles.statChange}>+12% from yesterday</Text>
+          <Text style={styles.statChange}>+18% from yesterday</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -147,31 +198,133 @@ export default function SupplierDashboardScreen() {
           </View>
           <Text style={styles.statNumber}>{todayStats.totalOrders}</Text>
           <Text style={styles.statLabel}>Total Orders</Text>
-          <Text style={styles.statChange}>+8% from yesterday</Text>
+          <Text style={styles.statChange}>+12% from yesterday</Text>
         </View>
 
         <View style={styles.statCard}>
           <View style={styles.statIcon}>
-            <TrendingUp size={24} color="#7C3AED" />
+            <Zap size={24} color="#DC2626" />
           </View>
-          <Text style={styles.statNumber}>₹{todayStats.avgOrderValue}</Text>
-          <Text style={styles.statLabel}>Avg Order Value</Text>
-          <Text style={styles.statChange}>+5% from yesterday</Text>
+          <Text style={styles.statNumber}>{todayStats.expressOrders}</Text>
+          <Text style={styles.statLabel}>Express Orders</Text>
+          <Text style={styles.statChange}>10-min delivery</Text>
         </View>
 
         <View style={styles.statCard}>
           <View style={styles.statIcon}>
-            <Users size={24} color="#DC2626" />
+            <Users size={24} color="#7C3AED" />
           </View>
           <Text style={styles.statNumber}>{todayStats.newCustomers}</Text>
           <Text style={styles.statLabel}>New Customers</Text>
-          <Text style={styles.statChange}>+2 from yesterday</Text>
+          <Text style={styles.statChange}>+3 from yesterday</Text>
         </View>
+      </View>
+
+      {/* Live Order Management */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Live Order Management</Text>
+          <View style={styles.liveIndicator}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        </View>
+
+        {liveOrders.map((order) => (
+          <View key={order.id} style={styles.liveOrderCard}>
+            <View style={styles.orderHeader}>
+              <View style={styles.orderInfo}>
+                <View style={styles.orderTitleRow}>
+                  <Text style={styles.orderNumber}>{order.id}</Text>
+                  {order.expressOrder && (
+                    <View style={styles.expressOrderBadge}>
+                      <Zap size={10} color="#FFFFFF" />
+                      <Text style={styles.expressOrderText}>EXPRESS</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.customerName}>{order.customer}</Text>
+                <Text style={styles.orderTime}>{order.time}</Text>
+              </View>
+              <View style={styles.orderAmount}>
+                <Text style={styles.amountText}>₹{order.amount}</Text>
+                <View style={[styles.orderStatus, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                  {getStatusIcon(order.status)}
+                  <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+                    {order.status.replace('_', ' ').toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.orderDetails}>
+              <Text style={styles.orderItems}>{order.items}</Text>
+              <Text style={styles.orderAddress}>{order.address}</Text>
+            </View>
+
+            {order.status === 'out_for_delivery' && (
+              <View style={styles.deliveryInfo}>
+                <Text style={styles.deliveryPersonText}>
+                  Delivery: {order.deliveryPerson} • ETA: {order.estimatedDelivery}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.orderActions}>
+              {order.status === 'pending' && (
+                <>
+                  <TouchableOpacity 
+                    style={styles.acceptButton}
+                    onPress={() => handleAcceptOrder(order.id)}
+                  >
+                    <CheckCircle size={14} color="#FFFFFF" />
+                    <Text style={styles.acceptButtonText}>Accept</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.autoAssignButton}
+                    onPress={() => handleAutoAssignDelivery(order.id)}
+                  >
+                    <Navigation size={14} color="#2563EB" />
+                    <Text style={styles.autoAssignButtonText}>Auto-Assign</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              
+              {order.status === 'preparing' && (
+                <TouchableOpacity 
+                  style={styles.readyButton}
+                  onPress={() => Alert.alert('Mark Ready', 'Mark order as ready for delivery?')}
+                >
+                  <Package size={14} color="#FFFFFF" />
+                  <Text style={styles.readyButtonText}>Mark Ready</Text>
+                </TouchableOpacity>
+              )}
+
+              {order.status === 'out_for_delivery' && (
+                <TouchableOpacity 
+                  style={styles.trackButton}
+                  onPress={() => Alert.alert('Live Tracking', 'View live delivery tracking')}
+                >
+                  <Navigation size={14} color="#FFFFFF" />
+                  <Text style={styles.trackButtonText}>Live Track</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity 
+                style={styles.contactButton}
+                onPress={() => handleContactCustomer(order.customerPhone)}
+              >
+                <MessageCircle size={14} color="#64748B" />
+                <Text style={styles.contactButtonText}>Contact</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
       </View>
 
       {/* Order Status Overview */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Status Overview</Text>
+        <Text style={styles.sectionTitle}>Today's Performance</Text>
         <View style={styles.orderStatusGrid}>
           <View style={styles.orderStatusCard}>
             <View style={[styles.orderStatusIcon, { backgroundColor: '#FEF3C7' }]}>
@@ -185,8 +338,16 @@ export default function SupplierDashboardScreen() {
             <View style={[styles.orderStatusIcon, { backgroundColor: '#DBEAFE' }]}>
               <Package size={20} color="#2563EB" />
             </View>
-            <Text style={styles.orderStatusNumber}>5</Text>
-            <Text style={styles.orderStatusLabel}>In Progress</Text>
+            <Text style={styles.orderStatusNumber}>8</Text>
+            <Text style={styles.orderStatusLabel}>Preparing</Text>
+          </View>
+
+          <View style={styles.orderStatusCard}>
+            <View style={[styles.orderStatusIcon, { backgroundColor: '#D1FAE5' }]}>
+              <Navigation size={20} color="#059669" />
+            </View>
+            <Text style={styles.orderStatusNumber}>12</Text>
+            <Text style={styles.orderStatusLabel}>Out for Delivery</Text>
           </View>
 
           <View style={styles.orderStatusCard}>
@@ -199,60 +360,17 @@ export default function SupplierDashboardScreen() {
         </View>
       </View>
 
-      {/* Recent Orders */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Orders</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAllText}>View All</Text>
-          </TouchableOpacity>
-        </View>
-
-        {recentOrders.map((order) => (
-          <TouchableOpacity key={order.id} style={styles.orderCard}>
-            <View style={styles.orderHeader}>
-              <View style={styles.orderInfo}>
-                <Text style={styles.orderNumber}>{order.id}</Text>
-                <Text style={styles.customerName}>{order.customer}</Text>
-              </View>
-              <View style={styles.orderAmount}>
-                <Text style={styles.amountText}>₹{order.amount}</Text>
-                <Text style={styles.orderTime}>{order.time}</Text>
-              </View>
-            </View>
-
-            <View style={styles.orderDetails}>
-              <Text style={styles.orderItems}>{order.items}</Text>
-              <Text style={styles.orderAddress}>{order.address}</Text>
-            </View>
-
-            <View style={styles.orderFooter}>
-              <View style={styles.orderStatus}>
-                {getStatusIcon(order.status)}
-                <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
-                  {order.status.replace('_', ' ').toUpperCase()}
-                </Text>
-              </View>
-              <TouchableOpacity style={styles.viewButton}>
-                <Eye size={16} color="#2563EB" />
-                <Text style={styles.viewButtonText}>View</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {/* Quick Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.quickActions}>
           <TouchableOpacity style={styles.actionButton}>
             <Calendar size={20} color="#2563EB" />
-            <Text style={styles.actionButtonText}>Schedule Delivery</Text>
+            <Text style={styles.actionButtonText}>Manage Inventory</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <Package size={20} color="#2563EB" />
-            <Text style={styles.actionButtonText}>Update Inventory</Text>
+            <TrendingUp size={20} color="#2563EB" />
+            <Text style={styles.actionButtonText}>View Analytics</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -325,14 +443,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   quickStatNumber: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 4,
   },
   quickStatLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
   },
   periodSelector: {
     flexDirection: 'row',
@@ -422,48 +541,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1E293B',
   },
-  viewAllText: {
-    fontSize: 14,
-    color: '#2563EB',
-    fontWeight: '500',
-  },
-  orderStatusGrid: {
+  liveIndicator: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  orderStatusCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
     alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  orderStatusIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#DC2626',
+    marginRight: 6,
   },
-  orderStatusNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 4,
-  },
-  orderStatusLabel: {
+  liveText: {
     fontSize: 12,
-    color: '#64748B',
+    fontWeight: '600',
+    color: '#DC2626',
   },
-  orderCard: {
+  liveOrderCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
@@ -473,6 +567,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2563EB',
   },
   orderHeader: {
     flexDirection: 'row',
@@ -483,15 +579,39 @@ const styles = StyleSheet.create({
   orderInfo: {
     flex: 1,
   },
+  orderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   orderNumber: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 2,
+    marginRight: 8,
+  },
+  expressOrderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  expressOrderText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '700',
+    marginLeft: 2,
   },
   customerName: {
     fontSize: 12,
     color: '#64748B',
+    marginBottom: 2,
+  },
+  orderTime: {
+    fontSize: 10,
+    color: '#94A3B8',
   },
   orderAmount: {
     alignItems: 'flex-end',
@@ -500,14 +620,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#059669',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  orderTime: {
-    fontSize: 10,
-    color: '#94A3B8',
+  orderStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   orderDetails: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   orderItems: {
     fontSize: 12,
@@ -518,21 +646,37 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#64748B',
   },
-  orderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  deliveryInfo: {
+    backgroundColor: '#F0FDF4',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
   },
-  orderStatus: {
+  deliveryPersonText: {
+    fontSize: 11,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  orderActions: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  acceptButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#059669',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '600',
+  acceptButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
     marginLeft: 4,
   },
-  viewButton: {
+  autoAssignButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EBF4FF',
@@ -540,11 +684,90 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
-  viewButtonText: {
+  autoAssignButtonText: {
     fontSize: 12,
     color: '#2563EB',
     fontWeight: '500',
     marginLeft: 4,
+  },
+  readyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  readyButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  trackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#059669',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  trackButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  contactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  contactButtonText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  orderStatusGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  orderStatusCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  orderStatusIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  orderStatusNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  orderStatusLabel: {
+    fontSize: 10,
+    color: '#64748B',
+    textAlign: 'center',
   },
   quickActions: {
     flexDirection: 'row',

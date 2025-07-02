@@ -1,7 +1,28 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { User, MapPin, CreditCard, Bell, Shield, CircleHelp as HelpCircle, Star, Gift, Settings, LogOut, ChevronRight, Droplets, Recycle, CreditCard as Edit } from 'lucide-react-native';
+import { 
+  User, 
+  MapPin, 
+  CreditCard, 
+  Bell, 
+  Shield, 
+  CircleHelp as HelpCircle, 
+  Star, 
+  Gift, 
+  Settings, 
+  LogOut, 
+  ChevronRight, 
+  Droplets, 
+  Recycle, 
+  CreditCard as Edit,
+  Calendar,
+  TrendingUp,
+  Clock,
+  Package,
+  Building,
+  Zap
+} from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -11,10 +32,44 @@ export default function ProfileScreen() {
     phone: '+91 9876543210',
     profileImage: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
     memberSince: 'January 2024',
-    totalOrders: 45,
-    loyaltyPoints: 1240,
-    ecoScore: 89
+    totalOrders: 67,
+    loyaltyPoints: 1840,
+    ecoScore: 94,
+    subscriptionActive: true,
+    preferredSupplier: 'AquaPure Solutions'
   });
+
+  const usageStats = [
+    { label: 'This Month', value: '8 orders', icon: <Calendar size={16} color="#2563EB" /> },
+    { label: 'Avg Delivery', value: '9 mins', icon: <Clock size={16} color="#059669" /> },
+    { label: 'Favorite', value: '20L Jars', icon: <Package size={16} color="#7C3AED" /> },
+    { label: 'Saved', value: '₹340', icon: <TrendingUp size={16} color="#F59E0B" /> },
+  ];
+
+  const quickActions = [
+    {
+      id: 'subscription',
+      icon: <Calendar size={20} color="#2563EB" />,
+      title: 'Manage Subscription',
+      subtitle: 'Daily delivery active',
+      action: () => Alert.alert('Subscription', 'Manage your daily water delivery subscription'),
+      badge: 'ACTIVE'
+    },
+    {
+      id: 'bulk_orders',
+      icon: <Building size={20} color="#2563EB" />,
+      title: 'Bulk Orders (Office)',
+      subtitle: 'Corporate discounts available',
+      action: () => Alert.alert('Bulk Orders', 'Setup bulk orders for your office'),
+    },
+    {
+      id: 'usage_analytics',
+      icon: <TrendingUp size={20} color="#2563EB" />,
+      title: 'Usage Analytics',
+      subtitle: 'Track your consumption patterns',
+      action: () => Alert.alert('Analytics', 'View your water consumption analytics'),
+    },
+  ];
 
   const menuItems = [
     {
@@ -34,8 +89,8 @@ export default function ProfileScreen() {
     {
       id: 'notifications',
       icon: <Bell size={20} color="#2563EB" />,
-      title: 'Notifications',
-      subtitle: 'Order updates and offers',
+      title: 'Smart Notifications',
+      subtitle: 'AI reminders and delivery alerts',
       action: () => console.log('Navigate to notifications'),
     },
     {
@@ -56,14 +111,14 @@ export default function ProfileScreen() {
       id: 'help',
       icon: <HelpCircle size={20} color="#2563EB" />,
       title: 'Help & Support',
-      subtitle: 'FAQs and customer service',
+      subtitle: '24/7 customer service',
       action: () => console.log('Navigate to help'),
     },
     {
       id: 'settings',
       icon: <Settings size={20} color="#2563EB" />,
       title: 'App Settings',
-      subtitle: 'Language, theme, and more',
+      subtitle: 'Voice search, notifications, theme',
       action: () => console.log('Navigate to settings'),
     },
   ];
@@ -106,27 +161,76 @@ export default function ProfileScreen() {
           <Text style={styles.profileName}>{user.name}</Text>
           <Text style={styles.profileEmail}>{user.email}</Text>
           <Text style={styles.profilePhone}>{user.phone}</Text>
-          <Text style={styles.memberSince}>Member since {user.memberSince}</Text>
+          <View style={styles.membershipInfo}>
+            <Text style={styles.memberSince}>Member since {user.memberSince}</Text>
+            {user.subscriptionActive && (
+              <View style={styles.subscriptionBadge}>
+                <Zap size={12} color="#FFFFFF" />
+                <Text style={styles.subscriptionBadgeText}>PREMIUM</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
-      {/* Stats */}
+      {/* Usage Stats */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{user.totalOrders}</Text>
-          <Text style={styles.statLabel}>Total Orders</Text>
+        {usageStats.map((stat, index) => (
+          <View key={index} style={styles.statCard}>
+            <View style={styles.statIcon}>
+              {stat.icon}
+            </View>
+            <Text style={styles.statValue}>{stat.value}</Text>
+            <Text style={styles.statLabel}>{stat.label}</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Main Stats */}
+      <View style={styles.mainStatsContainer}>
+        <View style={styles.mainStatCard}>
+          <Text style={styles.mainStatNumber}>{user.totalOrders}</Text>
+          <Text style={styles.mainStatLabel}>Total Orders</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{user.loyaltyPoints}</Text>
-          <Text style={styles.statLabel}>Loyalty Points</Text>
+        <View style={styles.mainStatCard}>
+          <Text style={styles.mainStatNumber}>{user.loyaltyPoints}</Text>
+          <Text style={styles.mainStatLabel}>Loyalty Points</Text>
         </View>
-        <View style={styles.statCard}>
+        <View style={styles.mainStatCard}>
           <View style={styles.ecoScoreContainer}>
-            <Text style={styles.statNumber}>{user.ecoScore}</Text>
+            <Text style={styles.mainStatNumber}>{user.ecoScore}</Text>
             <Recycle size={16} color="#059669" />
           </View>
-          <Text style={styles.statLabel}>Eco Score</Text>
+          <Text style={styles.mainStatLabel}>Eco Score</Text>
         </View>
+      </View>
+
+      {/* Quick Actions */}
+      <View style={styles.quickActionsSection}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        {quickActions.map((action) => (
+          <TouchableOpacity
+            key={action.id}
+            style={styles.quickActionCard}
+            onPress={action.action}
+          >
+            <View style={styles.quickActionIcon}>
+              {action.icon}
+            </View>
+            <View style={styles.quickActionContent}>
+              <View style={styles.quickActionHeader}>
+                <Text style={styles.quickActionTitle}>{action.title}</Text>
+                {action.badge && (
+                  <View style={styles.quickActionBadge}>
+                    <Text style={styles.quickActionBadgeText}>{action.badge}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
+            </View>
+            <ChevronRight size={20} color="#94A3B8" />
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Recent Achievement */}
@@ -135,9 +239,9 @@ export default function ProfileScreen() {
           <Star size={20} color="#F59E0B" />
         </View>
         <View style={styles.achievementContent}>
-          <Text style={styles.achievementTitle}>Eco Warrior</Text>
+          <Text style={styles.achievementTitle}>Eco Champion</Text>
           <Text style={styles.achievementDescription}>
-            You've returned 50+ empty jars! Keep going to earn more rewards.
+            You've returned 75+ empty jars this month! You're in the top 5% of eco-friendly users.
           </Text>
         </View>
       </View>
@@ -170,7 +274,7 @@ export default function ProfileScreen() {
 
       {/* App Version */}
       <View style={styles.appVersion}>
-        <Text style={styles.versionText}>AquaLink v1.0.0</Text>
+        <Text style={styles.versionText}>AquaLink v2.0.0 - Advanced Edition</Text>
       </View>
     </ScrollView>
   );
@@ -259,17 +363,69 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginBottom: 8,
   },
+  membershipInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   memberSince: {
     fontSize: 12,
     color: '#94A3B8',
+  },
+  subscriptionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#059669',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  subscriptionBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    marginLeft: 4,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     marginTop: 24,
+    gap: 8,
   },
   statCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    flex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statIcon: {
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  mainStatsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  mainStatCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
@@ -282,13 +438,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  statNumber: {
+  mainStatNumber: {
     fontSize: 20,
     fontWeight: '700',
     color: '#1E293B',
     marginBottom: 4,
   },
-  statLabel: {
+  mainStatLabel: {
     fontSize: 12,
     color: '#64748B',
     textAlign: 'center',
@@ -296,6 +452,68 @@ const styles = StyleSheet.create({
   ecoScoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+  },
+  quickActionsSection: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 16,
+  },
+  quickActionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  quickActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  quickActionContent: {
+    flex: 1,
+  },
+  quickActionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  quickActionTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1E293B',
+    flex: 1,
+  },
+  quickActionBadge: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  quickActionBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  quickActionSubtitle: {
+    fontSize: 12,
+    color: '#64748B',
   },
   achievementCard: {
     backgroundColor: '#FFFFFF',

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Package, Clock, CircleCheck as CheckCircle, Truck, MapPin, Phone, Star, RotateCcw, ChevronRight } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { Package, Clock, CircleCheck as CheckCircle, Truck, MapPin, Phone, Star, RotateCcw, ChevronRight, Navigation, MessageCircle, Zap } from 'lucide-react-native';
 
 export default function OrdersScreen() {
   const [activeTab, setActiveTab] = useState('active');
 
   const tabs = [
-    { id: 'active', label: 'Active', count: 2 },
+    { id: 'active', label: 'Active', count: 3 },
     { id: 'completed', label: 'Completed', count: 15 },
     { id: 'cancelled', label: 'Cancelled', count: 1 },
   ];
@@ -20,14 +20,17 @@ export default function OrdersScreen() {
       status: 'out_for_delivery',
       statusText: 'Out for Delivery',
       items: [
-        { name: '20L Water Jar', quantity: 2, price: 50 }
+        { name: '20L Water Jar', quantity: 2, price: 100 }
       ],
-      total: 50,
+      total: 100,
       orderTime: '2 hours ago',
-      estimatedDelivery: '15-20 mins',
+      estimatedDelivery: '5-8 mins',
       deliveryAddress: '123 Main Street, Bangalore',
       deliveryPerson: 'Rajesh Kumar',
       deliveryPhone: '+91 9876543210',
+      deliveryPersonImage: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=40&h=40&fit=crop',
+      liveLocation: { lat: 12.9716, lng: 77.5946 },
+      expressDelivery: true,
       trackingSteps: [
         { step: 'Order Placed', completed: true, time: '2:30 PM' },
         { step: 'Preparing', completed: true, time: '2:45 PM' },
@@ -43,15 +46,38 @@ export default function OrdersScreen() {
       status: 'preparing',
       statusText: 'Preparing',
       items: [
-        { name: '20L Water Jar', quantity: 1, price: 22 }
+        { name: '1L Bottles', quantity: 24, price: 240 }
       ],
-      total: 22,
+      total: 240,
       orderTime: '1 hour ago',
-      estimatedDelivery: '30-40 mins',
+      estimatedDelivery: '12-15 mins',
       deliveryAddress: '123 Main Street, Bangalore',
+      expressDelivery: false,
       trackingSteps: [
         { step: 'Order Placed', completed: true, time: '3:00 PM' },
         { step: 'Preparing', completed: true, time: '3:10 PM' },
+        { step: 'Out for Delivery', completed: false, time: '' },
+        { step: 'Delivered', completed: false, time: '' }
+      ]
+    },
+    {
+      id: 3,
+      orderNumber: '#AQ001236',
+      supplier: 'Himalayan Springs',
+      supplierImage: 'https://images.pexels.com/photos/1000084/pexels-photo-1000084.jpeg?auto=compress&cs=tinysrgb&w=60&h=60&fit=crop',
+      status: 'confirmed',
+      statusText: 'Confirmed',
+      items: [
+        { name: '500ml Bottles', quantity: 48, price: 192 }
+      ],
+      total: 192,
+      orderTime: '30 mins ago',
+      estimatedDelivery: '8-12 mins',
+      deliveryAddress: '123 Main Street, Bangalore',
+      expressDelivery: true,
+      trackingSteps: [
+        { step: 'Order Placed', completed: true, time: '3:30 PM' },
+        { step: 'Preparing', completed: false, time: '' },
         { step: 'Out for Delivery', completed: false, time: '' },
         { step: 'Delivered', completed: false, time: '' }
       ]
@@ -60,43 +86,49 @@ export default function OrdersScreen() {
 
   const completedOrders = [
     {
-      id: 3,
+      id: 4,
       orderNumber: '#AQ001230',
       supplier: 'Himalayan Springs',
       supplierImage: 'https://images.pexels.com/photos/1000084/pexels-photo-1000084.jpeg?auto=compress&cs=tinysrgb&w=60&h=60&fit=crop',
       status: 'delivered',
       statusText: 'Delivered',
       items: [
-        { name: '20L Water Jar', quantity: 3, price: 90 }
+        { name: '20L Water Jar', quantity: 3, price: 150 }
       ],
-      total: 90,
+      total: 150,
       orderTime: '1 day ago',
       deliveryTime: 'Delivered at 4:30 PM',
       deliveryAddress: '123 Main Street, Bangalore',
       rating: 4.5,
-      canReorder: true
+      canReorder: true,
+      actualDeliveryTime: '9 minutes',
+      expressDelivery: true
     },
     {
-      id: 4,
+      id: 5,
       orderNumber: '#AQ001229',
       supplier: 'Pure Drop Waters',
       supplierImage: 'https://images.pexels.com/photos/327090/pexels-photo-327090.jpeg?auto=compress&cs=tinysrgb&w=60&h=60&fit=crop',
       status: 'delivered',
       statusText: 'Delivered',
       items: [
-        { name: '20L Water Jar', quantity: 2, price: 40 }
+        { name: '1L Bottles', quantity: 12, price: 120 }
       ],
-      total: 40,
+      total: 120,
       orderTime: '2 days ago',
       deliveryTime: 'Delivered at 2:15 PM',
       deliveryAddress: '123 Main Street, Bangalore',
       rating: 4.0,
-      canReorder: true
+      canReorder: true,
+      actualDeliveryTime: '18 minutes',
+      expressDelivery: false
     }
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'confirmed':
+        return '#F59E0B';
       case 'preparing':
         return '#F59E0B';
       case 'out_for_delivery':
@@ -108,6 +140,29 @@ export default function OrdersScreen() {
     }
   };
 
+  const handleLiveTracking = (order: any) => {
+    Alert.alert(
+      'Live Tracking',
+      `Track ${order.deliveryPerson} delivering your order\n\nEstimated arrival: ${order.estimatedDelivery}`,
+      [
+        { text: 'Call Delivery Person', onPress: () => Alert.alert('Calling...', order.deliveryPhone) },
+        { text: 'Open Map', onPress: () => Alert.alert('Opening live map...') },
+        { text: 'Close' }
+      ]
+    );
+  };
+
+  const handleChatWithDelivery = (order: any) => {
+    Alert.alert(
+      'Chat with Delivery Person',
+      `Start a chat with ${order.deliveryPerson}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Start Chat', onPress: () => Alert.alert('Chat opened') }
+      ]
+    );
+  };
+
   const renderActiveOrder = (order: any) => (
     <View key={order.id} style={styles.orderCard}>
       <View style={styles.orderHeader}>
@@ -115,10 +170,18 @@ export default function OrdersScreen() {
           <Text style={styles.orderNumber}>{order.orderNumber}</Text>
           <Text style={styles.orderTime}>{order.orderTime}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
-          <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
-            {order.statusText}
-          </Text>
+        <View style={styles.orderBadges}>
+          {order.expressDelivery && (
+            <View style={styles.expressBadge}>
+              <Zap size={10} color="#FFFFFF" />
+              <Text style={styles.expressBadgeText}>EXPRESS</Text>
+            </View>
+          )}
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+            <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+              {order.statusText}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -149,19 +212,32 @@ export default function OrdersScreen() {
 
       {order.status === 'out_for_delivery' && (
         <View style={styles.deliverySection}>
-          <View style={styles.deliveryPersonInfo}>
-            <Truck size={16} color="#2563EB" />
-            <Text style={styles.deliveryPersonName}>{order.deliveryPerson}</Text>
-            <TouchableOpacity style={styles.callButton}>
-              <Phone size={14} color="#2563EB" />
-            </TouchableOpacity>
+          <View style={styles.deliveryPersonCard}>
+            <Image source={{ uri: order.deliveryPersonImage }} style={styles.deliveryPersonImage} />
+            <View style={styles.deliveryPersonInfo}>
+              <Text style={styles.deliveryPersonName}>{order.deliveryPerson}</Text>
+              <Text style={styles.estimatedDelivery}>Arriving in {order.estimatedDelivery}</Text>
+            </View>
+            <View style={styles.deliveryActions}>
+              <TouchableOpacity 
+                style={styles.callButton}
+                onPress={() => Alert.alert('Calling...', order.deliveryPhone)}
+              >
+                <Phone size={16} color="#2563EB" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.chatButton}
+                onPress={() => handleChatWithDelivery(order)}
+              >
+                <MessageCircle size={16} color="#2563EB" />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.estimatedDelivery}>Estimated delivery: {order.estimatedDelivery}</Text>
         </View>
       )}
 
       <View style={styles.trackingContainer}>
-        <Text style={styles.trackingTitle}>Order Tracking</Text>
+        <Text style={styles.trackingTitle}>Order Progress</Text>
         <View style={styles.trackingSteps}>
           {order.trackingSteps.map((step: any, index: number) => (
             <View key={index} style={styles.trackingStep}>
@@ -194,10 +270,15 @@ export default function OrdersScreen() {
       </View>
 
       <View style={styles.orderActions}>
-        <TouchableOpacity style={styles.trackButton}>
-          <MapPin size={16} color="#2563EB" />
-          <Text style={styles.trackButtonText}>Track Live</Text>
-        </TouchableOpacity>
+        {order.status === 'out_for_delivery' && (
+          <TouchableOpacity 
+            style={styles.liveTrackButton}
+            onPress={() => handleLiveTracking(order)}
+          >
+            <Navigation size={16} color="#FFFFFF" />
+            <Text style={styles.liveTrackButtonText}>Live Track</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.supportButton}>
           <Phone size={16} color="#64748B" />
           <Text style={styles.supportButtonText}>Support</Text>
@@ -213,11 +294,19 @@ export default function OrdersScreen() {
           <Text style={styles.orderNumber}>{order.orderNumber}</Text>
           <Text style={styles.orderTime}>{order.orderTime}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
-          <CheckCircle size={14} color={getStatusColor(order.status)} />
-          <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
-            {order.statusText}
-          </Text>
+        <View style={styles.orderBadges}>
+          {order.expressDelivery && (
+            <View style={styles.deliveredExpressBadge}>
+              <Zap size={10} color="#059669" />
+              <Text style={styles.deliveredExpressBadgeText}>EXPRESS</Text>
+            </View>
+          )}
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+            <CheckCircle size={14} color={getStatusColor(order.status)} />
+            <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+              {order.statusText}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -226,6 +315,9 @@ export default function OrdersScreen() {
         <View style={styles.supplierDetails}>
           <Text style={styles.supplierName}>{order.supplier}</Text>
           <Text style={styles.deliveryTime}>{order.deliveryTime}</Text>
+          <Text style={styles.actualDeliveryTime}>
+            Delivered in {order.actualDeliveryTime}
+          </Text>
         </View>
       </View>
 
@@ -261,6 +353,7 @@ export default function OrdersScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Orders</Text>
+        <Text style={styles.headerSubtitle}>Track your water deliveries</Text>
       </View>
 
       {/* Tabs */}
@@ -281,8 +374,16 @@ export default function OrdersScreen() {
               {tab.label}
             </Text>
             {tab.count > 0 && (
-              <View style={styles.tabBadge}>
-                <Text style={styles.tabBadgeText}>{tab.count}</Text>
+              <View style={[
+                styles.tabBadge,
+                activeTab === tab.id && styles.activeTabBadge
+              ]}>
+                <Text style={[
+                  styles.tabBadgeText,
+                  activeTab === tab.id && styles.activeTabBadgeText
+                ]}>
+                  {tab.count}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
@@ -322,6 +423,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1E293B',
   },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 4,
+  },
   tabsContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -357,10 +463,16 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginLeft: 8,
   },
+  activeTabBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
   tabBadgeText: {
     fontSize: 10,
     fontWeight: '600',
     color: '#64748B',
+  },
+  activeTabBadgeText: {
+    color: '#FFFFFF',
   },
   ordersList: {
     flex: 1,
@@ -380,7 +492,7 @@ const styles = StyleSheet.create({
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   orderInfo: {
@@ -395,6 +507,38 @@ const styles = StyleSheet.create({
   orderTime: {
     fontSize: 12,
     color: '#64748B',
+  },
+  orderBadges: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  expressBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  expressBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '700',
+    marginLeft: 2,
+  },
+  deliveredExpressBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#059669',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  deliveredExpressBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '700',
+    marginLeft: 2,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -440,6 +584,12 @@ const styles = StyleSheet.create({
   deliveryTime: {
     fontSize: 12,
     color: '#64748B',
+    marginBottom: 2,
+  },
+  actualDeliveryTime: {
+    fontSize: 11,
+    color: '#059669',
+    fontWeight: '600',
   },
   itemsContainer: {
     marginBottom: 12,
@@ -484,24 +634,49 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  deliveryPersonInfo: {
+  deliveryPersonCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+  },
+  deliveryPersonImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  deliveryPersonInfo: {
+    flex: 1,
   },
   deliveryPersonName: {
     fontSize: 14,
     fontWeight: '500',
     color: '#1E293B',
-    marginLeft: 8,
-    flex: 1,
-  },
-  callButton: {
-    padding: 4,
+    marginBottom: 2,
   },
   estimatedDelivery: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#059669',
+    fontWeight: '600',
+  },
+  deliveryActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  callButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   trackingContainer: {
     marginBottom: 12,
@@ -561,22 +736,22 @@ const styles = StyleSheet.create({
   orderActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 8,
   },
-  trackButton: {
+  liveTrackButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EBF4FF',
+    backgroundColor: '#2563EB',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
     flex: 1,
     justifyContent: 'center',
-    marginRight: 8,
   },
-  trackButtonText: {
+  liveTrackButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#2563EB',
+    color: '#FFFFFF',
     marginLeft: 4,
   },
   supportButton: {
@@ -588,7 +763,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flex: 1,
     justifyContent: 'center',
-    marginLeft: 8,
   },
   supportButtonText: {
     fontSize: 12,
