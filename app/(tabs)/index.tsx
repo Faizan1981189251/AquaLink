@@ -23,14 +23,24 @@ import {
   TrendingUp,
   Package,
   MessageCircle,
-  Bot
+  Bot,
+  ScanLine,
+  Volume2
 } from 'lucide-react-native';
 import AIChatbot from '@/components/AIChatbot';
+import VoiceOrderModal from '@/components/VoiceOrderModal';
+import BarcodeScanner from '@/components/BarcodeScanner';
+import { getCurrentLocation, LocationCoords } from '@/lib/location';
+import { getNearbySuppliers } from '@/lib/firestore';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [chatbotVisible, setChatbotVisible] = useState(false);
+  const [voiceOrderVisible, setVoiceOrderVisible] = useState(false);
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
+  const [nearbySuppliers, setNearbySuppliers] = useState<any[]>([]);
   const [quickOrderCounts, setQuickOrderCounts] = useState({
     jar20L: 0,
     bottle1L: 0,
@@ -44,6 +54,58 @@ export default function HomeScreen() {
     daysLeft: 2,
     lastOrderDate: '3 days ago'
   });
+
+  useEffect(() => {
+    loadUserLocation();
+  }, []);
+
+  const loadUserLocation = async () => {
+    try {
+      const location = await getCurrentLocation();
+      if (location) {
+        setUserLocation(location);
+        loadNearbySuppliers(location.latitude, location.longitude);
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+    }
+  };
+
+  const loadNearbySuppliers = async (lat: number, lng: number) => {
+    try {
+      const suppliers = await getNearbySuppliers(lat, lng, 10);
+      setNearbySuppliers(suppliers.slice(0, 3)); // Show top 3
+    } catch (error) {
+      console.error('Error loading suppliers:', error);
+      // Fallback to mock data
+      setNearbySuppliers([
+        {
+          id: 1,
+          name: 'AquaPure Solutions',
+          distance: '0.8 km',
+          rating: 4.8,
+          deliveryTime: '8-12 min',
+          image: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+          certified: true,
+          price: '₹25/jar',
+          expressDelivery: true,
+          available: true
+        },
+        {
+          id: 2,
+          name: 'Crystal Water Co.',
+          distance: '1.2 km',
+          rating: 4.6,
+          deliveryTime: '10-15 min',
+          image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+          certified: true,
+          price: '₹22/jar',
+          expressDelivery: false,
+          available: true
+        }
+      ]);
+    }
+  };
 
   const quickOrderItems = [
     { 
@@ -89,33 +151,6 @@ export default function HomeScreen() {
       supplier: 'Crystal Water Co.',
       date: '1 week ago',
       total: 240
-    }
-  ];
-
-  const nearbySuppliers = [
-    {
-      id: 1,
-      name: 'AquaPure Solutions',
-      distance: '0.8 km',
-      rating: 4.8,
-      deliveryTime: '8-12 min',
-      image: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      certified: true,
-      price: '₹25/jar',
-      expressDelivery: true,
-      available: true
-    },
-    {
-      id: 2,
-      name: 'Crystal Water Co.',
-      distance: '1.2 km',
-      rating: 4.6,
-      deliveryTime: '10-15 min',
-      image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-      certified: true,
-      price: '₹22/jar',
-      expressDelivery: false,
-      available: true
     }
   ];
 
@@ -169,6 +204,22 @@ export default function HomeScreen() {
         { text: 'Cancel', style: 'cancel' },
         { text: 'Reorder', onPress: () => Alert.alert('Order Placed!', 'Estimated delivery: 8-12 minutes') }
       ]
+    );
+  };
+
+  const handleVoiceOrderComplete = (orderData: any) => {
+    Alert.alert(
+      'Voice Order Placed!',
+      `Order: ${orderData.items.map((item: any) => `${item.quantity}x ${item.name}`).join(', ')}\nTotal: ₹${orderData.total}`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleBarcodeScanned = (productData: any) => {
+    Alert.alert(
+      'Product Added!',
+      `${productData.name} has been added to your cart.`,
+      [{ text: 'OK' }]
     );
   };
 
@@ -234,24 +285,32 @@ export default function HomeScreen() {
         </View>
       </LinearGradient>
 
-      {/* AI Assistant Quick Access */}
-      <TouchableOpacity 
-        style={styles.aiAssistantCard}
-        onPress={() => setChatbotVisible(true)}
-      >
-        <View style={styles.aiAssistantIcon}>
-          <Bot size={24} color="#2563EB" />
-        </View>
-        <View style={styles.aiAssistantContent}>
-          <Text style={styles.aiAssistantTitle}>Need Help? Ask AquaBot!</Text>
-          <Text style={styles.aiAssistantSubtitle}>
-            Get instant answers about orders, deliveries, and more
-          </Text>
-        </View>
-        <View style={styles.aiAssistantAction}>
-          <MessageCircle size={20} color="#2563EB" />
-        </View>
-      </TouchableOpacity>
+      {/* Quick Action Buttons */}
+      <View style={styles.quickActionsContainer}>
+        <TouchableOpacity 
+          style={styles.quickActionButton}
+          onPress={() => setVoiceOrderVisible(true)}
+        >
+          <Volume2 size={20} color="#2563EB" />
+          <Text style={styles.quickActionText}>Voice Order</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.quickActionButton}
+          onPress={() => setScannerVisible(true)}
+        >
+          <ScanLine size={20} color="#059669" />
+          <Text style={styles.quickActionText}>Scan & Order</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.quickActionButton}
+          onPress={() => setChatbotVisible(true)}
+        >
+          <Bot size={20} color="#7C3AED" />
+          <Text style={styles.quickActionText}>AI Assistant</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* AI Stock Reminder */}
       {stockReminder.show && (
@@ -438,10 +497,22 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* AI Chatbot */}
+      {/* Modals */}
       <AIChatbot 
         visible={chatbotVisible}
         onClose={() => setChatbotVisible(false)}
+      />
+      
+      <VoiceOrderModal
+        visible={voiceOrderVisible}
+        onClose={() => setVoiceOrderVisible(false)}
+        onOrderComplete={handleVoiceOrderComplete}
+      />
+      
+      <BarcodeScanner
+        visible={scannerVisible}
+        onClose={() => setScannerVisible(false)}
+        onScanComplete={handleBarcodeScanned}
       />
     </ScrollView>
   );
@@ -573,47 +644,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 6,
   },
-  aiAssistantCard: {
-    backgroundColor: '#EBF4FF',
-    marginHorizontal: 24,
+  quickActionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
     marginTop: 20,
-    borderRadius: 16,
-    padding: 16,
+    gap: 12,
+  },
+  quickActionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#DBEAFE',
-  },
-  aiAssistantIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  aiAssistantContent: {
-    flex: 1,
-  },
-  aiAssistantTitle: {
-    fontSize: 16,
+  quickActionText: {
+    fontSize: 12,
     fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 4,
-  },
-  aiAssistantSubtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    lineHeight: 16,
-  },
-  aiAssistantAction: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginLeft: 6,
   },
   stockReminderCard: {
     backgroundColor: '#FEF3C7',

@@ -9,13 +9,27 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#2563EB"
-      }
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -27,10 +41,18 @@
       "expo-font",
       "expo-web-browser",
       "expo-location",
+      "expo-camera",
+      "expo-barcode-scanner",
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow AquaLink to use your location to find nearby water suppliers."
+          "locationAlwaysAndWhenInUsePermission": "Allow AquaLink to use your location to find nearby water suppliers and track deliveries."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow AquaLink to use your camera to scan product barcodes for quick ordering."
         }
       ]
     ],
