@@ -25,13 +25,18 @@ import {
   MessageCircle,
   Bot,
   ScanLine,
-  Volume2
+  Volume2,
+  Brain
 } from 'lucide-react-native';
 import AIChatbot from '@/components/AIChatbot';
 import VoiceOrderModal from '@/components/VoiceOrderModal';
 import BarcodeScanner from '@/components/BarcodeScanner';
+import AIRecommendations from '@/components/AIRecommendations';
+import SmartOrderSuggestions from '@/components/SmartOrderSuggestions';
+import SupplierQualityCard from '@/components/SupplierQualityCard';
 import { getCurrentLocation, LocationCoords } from '@/lib/location';
 import { getNearbySuppliers } from '@/lib/firestore';
+import { Recommendation } from '@/lib/ai-recommendations';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,13 +51,18 @@ export default function HomeScreen() {
     bottle1L: 0,
     bottle500ml: 0
   });
+  const [showRecommendations, setShowRecommendations] = useState(true);
+
+  // Mock user ID - in real app, get from auth
+  const userId = 'user_123';
 
   // AI Stock Reminder State
   const [stockReminder, setStockReminder] = useState({
     show: true,
     item: '20L Jars',
     daysLeft: 2,
-    lastOrderDate: '3 days ago'
+    lastOrderDate: '3 days ago',
+    confidence: 0.89
   });
 
   useEffect(() => {
@@ -77,7 +87,7 @@ export default function HomeScreen() {
       setNearbySuppliers(suppliers.slice(0, 3)); // Show top 3
     } catch (error) {
       console.error('Error loading suppliers:', error);
-      // Fallback to mock data
+      // Fallback to mock data with quality scores
       setNearbySuppliers([
         {
           id: 1,
@@ -89,7 +99,25 @@ export default function HomeScreen() {
           certified: true,
           price: '₹25/jar',
           expressDelivery: true,
-          available: true
+          available: true,
+          qualityScore: 9.2,
+          deliverySpeedScore: 9.5,
+          reliabilityScore: 8.8,
+          customerSatisfaction: 0.94,
+          certifications: ['ISO 22000', 'BIS Certified', 'FSSAI Licensed'],
+          labReports: [{
+            id: 'report_1',
+            date: '2024-01-10',
+            parameters: {
+              ph: 7.2,
+              tds: 180,
+              chlorine: 0.1,
+              bacteria: 0,
+              minerals: { calcium: 45, magnesium: 12, potassium: 8 }
+            },
+            certification: 'NABL Certified Lab',
+            score: 9.2
+          }]
         },
         {
           id: 2,
@@ -101,7 +129,25 @@ export default function HomeScreen() {
           certified: true,
           price: '₹22/jar',
           expressDelivery: false,
-          available: true
+          available: true,
+          qualityScore: 8.7,
+          deliverySpeedScore: 8.2,
+          reliabilityScore: 9.1,
+          customerSatisfaction: 0.89,
+          certifications: ['BIS Certified', 'FSSAI Licensed'],
+          labReports: [{
+            id: 'report_2',
+            date: '2024-01-08',
+            parameters: {
+              ph: 7.0,
+              tds: 220,
+              chlorine: 0.2,
+              bacteria: 0,
+              minerals: { calcium: 38, magnesium: 15, potassium: 6 }
+            },
+            certification: 'Government Lab',
+            score: 8.7
+          }]
         }
       ]);
     }
@@ -223,6 +269,28 @@ export default function HomeScreen() {
     );
   };
 
+  const handleRecommendationAction = (recommendation: Recommendation) => {
+    Alert.alert(
+      'AI Recommendation',
+      `Action: ${recommendation.action.type}\n\n${recommendation.title}`,
+      [
+        { text: 'Not Now', style: 'cancel' },
+        { text: 'Take Action', onPress: () => console.log('Execute recommendation:', recommendation) }
+      ]
+    );
+  };
+
+  const handleOrderSuggestion = (suggestion: any) => {
+    Alert.alert(
+      'Smart Suggestion',
+      `${suggestion.title}\n\nTotal: ₹${suggestion.items.reduce((sum: number, item: any) => sum + item.price, 0)}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Order Now', onPress: () => console.log('Execute suggestion:', suggestion) }
+      ]
+    );
+  };
+
   const dismissStockReminder = () => {
     setStockReminder(prev => ({ ...prev, show: false }));
   };
@@ -316,7 +384,7 @@ export default function HomeScreen() {
       {stockReminder.show && (
         <View style={styles.stockReminderCard}>
           <View style={styles.stockReminderIcon}>
-            <TrendingUp size={20} color="#F59E0B" />
+            <Brain size={20} color="#F59E0B" />
           </View>
           <View style={styles.stockReminderContent}>
             <Text style={styles.stockReminderTitle}>AI Stock Alert</Text>
@@ -324,7 +392,7 @@ export default function HomeScreen() {
               Your {stockReminder.item} might run out in {stockReminder.daysLeft} days
             </Text>
             <Text style={styles.stockReminderSubtext}>
-              Last order: {stockReminder.lastOrderDate}
+              Last order: {stockReminder.lastOrderDate} • {Math.round(stockReminder.confidence * 100)}% confidence
             </Text>
           </View>
           <TouchableOpacity 
@@ -341,6 +409,24 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* AI Recommendations */}
+      {showRecommendations && (
+        <View style={styles.section}>
+          <AIRecommendations 
+            userId={userId}
+            onRecommendationAction={handleRecommendationAction}
+          />
+        </View>
+      )}
+
+      {/* Smart Order Suggestions */}
+      <View style={styles.section}>
+        <SmartOrderSuggestions 
+          userId={userId}
+          onOrderSuggestion={handleOrderSuggestion}
+        />
+      </View>
 
       {/* 1-Click Quick Order */}
       <View style={styles.section}>
@@ -418,55 +504,21 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Express Delivery Suppliers */}
+      {/* AI-Matched Suppliers with Quality Cards */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>10-Min Express Delivery</Text>
+          <Text style={styles.sectionTitle}>AI-Matched Quality Suppliers</Text>
           <TouchableOpacity>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
         
         {nearbySuppliers.map((supplier) => (
-          <TouchableOpacity key={supplier.id} style={styles.supplierCard}>
-            <Image source={{ uri: supplier.image }} style={styles.supplierImage} />
-            <View style={styles.supplierInfo}>
-              <View style={styles.supplierHeader}>
-                <Text style={styles.supplierName}>{supplier.name}</Text>
-                {supplier.certified && (
-                  <View style={styles.certifiedBadge}>
-                    <Shield size={12} color="#059669" />
-                  </View>
-                )}
-                {supplier.expressDelivery && (
-                  <View style={styles.expressBadge}>
-                    <Zap size={10} color="#FFFFFF" />
-                    <Text style={styles.expressBadgeText}>EXPRESS</Text>
-                  </View>
-                )}
-              </View>
-              
-              <View style={styles.supplierMeta}>
-                <View style={styles.ratingContainer}>
-                  <Star size={12} color="#F59E0B" />
-                  <Text style={styles.rating}>{supplier.rating}</Text>
-                </View>
-                <Text style={styles.distance}>{supplier.distance}</Text>
-                <View style={styles.deliveryTimeContainer}>
-                  <Clock size={12} color="#059669" />
-                  <Text style={styles.deliveryTime}>{supplier.deliveryTime}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.supplierFooter}>
-                <Text style={styles.price}>{supplier.price}</Text>
-                <TouchableOpacity style={styles.orderButton}>
-                  <Text style={styles.orderButtonText}>Order Now</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <ChevronRight size={20} color="#94A3B8" />
-          </TouchableOpacity>
+          <SupplierQualityCard
+            key={supplier.id}
+            supplier={supplier}
+            onViewDetails={() => Alert.alert('Quality Report', `View full quality report for ${supplier.name}`)}
+          />
         ))}
       </View>
 
@@ -887,108 +939,6 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '500',
     marginLeft: 4,
-  },
-  supplierCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  supplierImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 16,
-  },
-  supplierInfo: {
-    flex: 1,
-  },
-  supplierHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  supplierName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    flex: 1,
-  },
-  certifiedBadge: {
-    marginLeft: 8,
-  },
-  expressBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginLeft: 4,
-  },
-  expressBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 8,
-    fontWeight: '700',
-    marginLeft: 2,
-  },
-  supplierMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  rating: {
-    fontSize: 12,
-    color: '#64748B',
-    marginLeft: 4,
-  },
-  distance: {
-    fontSize: 12,
-    color: '#64748B',
-    marginRight: 12,
-  },
-  deliveryTimeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deliveryTime: {
-    fontSize: 12,
-    color: '#059669',
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  supplierFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  price: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#059669',
-  },
-  orderButton: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  orderButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '500',
   },
   ecoCard: {
     backgroundColor: '#FFFFFF',
