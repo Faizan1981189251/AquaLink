@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, User, Mail, Lock, Phone, Eye, EyeOff } from 'lucide-react-native';
-import { signUpWithEmail } from '@/lib/auth';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -37,13 +36,8 @@ export default function SignupScreen() {
     setLoading(true);
     
     try {
-      const user = await signUpWithEmail(formData.email, formData.password, {
-        fullName: formData.fullName,
-        phone: formData.phone,
-        userType: formData.userType
-      });
-
-      if (user) {
+      // Simulate signup
+      setTimeout(() => {
         Alert.alert(
           'Account Created!',
           'Your account has been created successfully.',
@@ -51,7 +45,6 @@ export default function SignupScreen() {
             {
               text: 'OK',
               onPress: () => {
-                // Navigate based on user type
                 if (formData.userType === 'supplier') {
                   router.replace('/(supplier-tabs)');
                 } else {
@@ -61,11 +54,11 @@ export default function SignupScreen() {
             }
           ]
         );
-      }
+        setLoading(false);
+      }, 1000);
     } catch (error: any) {
       console.error('Signup error:', error);
-      Alert.alert('Signup Failed', error.message || 'Failed to create account. Please try again.');
-    } finally {
+      Alert.alert('Signup Failed', 'Failed to create account. Please try again.');
       setLoading(false);
     }
   };

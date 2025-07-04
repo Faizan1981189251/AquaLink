@@ -7,7 +7,7 @@ import {
   Bell, 
   CreditCard, 
   Shield, 
-  CircleHelp as HelpCircle, 
+  HelpCircle, 
   Settings as SettingsIcon,
   LogOut,
   ChevronRight,

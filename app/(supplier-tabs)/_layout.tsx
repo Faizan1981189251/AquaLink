@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { ChartBar as BarChart3, Package, Settings, TrendingUp } from 'lucide-react-native';
+import { BarChart3, Package, Settings, TrendingUp } from 'lucide-react-native';
 
 export default function SupplierTabLayout() {
   return (

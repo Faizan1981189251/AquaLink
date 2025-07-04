@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, User, Store } from 'lucide-react-native';
-import { signInWithEmail } from '@/lib/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -21,20 +20,18 @@ export default function LoginScreen() {
     setLoading(true);
     
     try {
-      const user = await signInWithEmail(email, password);
-      
-      if (user) {
-        // Navigate based on user type
+      // Simulate login
+      setTimeout(() => {
         if (userType === 'supplier') {
           router.replace('/(supplier-tabs)');
         } else {
           router.replace('/(tabs)');
         }
-      }
+        setLoading(false);
+      }, 1000);
     } catch (error: any) {
       console.error('Login error:', error);
-      Alert.alert('Login Failed', error.message || 'Please check your credentials and try again.');
-    } finally {
+      Alert.alert('Login Failed', 'Please check your credentials and try again.');
       setLoading(false);
     }
   };

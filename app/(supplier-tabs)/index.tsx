@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DollarSign, Package, TrendingUp, Users, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Calendar, Eye, Bell, Zap, Navigation, MessageCircle } from 'lucide-react-native';
+import { DollarSign, Package, TrendingUp, Users, Clock, CheckCircle, AlertCircle, Calendar, Eye, Bell, Zap, Navigation, MessageCircle } from 'lucide-react-native';
 
 export default function SupplierDashboardScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState('today');

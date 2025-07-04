@@ -28,130 +28,15 @@ import {
   Volume2,
   Brain
 } from 'lucide-react-native';
-import AIChatbot from '@/components/AIChatbot';
-import VoiceOrderModal from '@/components/VoiceOrderModal';
-import BarcodeScanner from '@/components/BarcodeScanner';
-import AIRecommendations from '@/components/AIRecommendations';
-import SmartOrderSuggestions from '@/components/SmartOrderSuggestions';
-import SupplierQualityCard from '@/components/SupplierQualityCard';
-import { getCurrentLocation, LocationCoords } from '@/lib/location';
-import { getNearbySuppliers } from '@/lib/firestore';
-import { Recommendation } from '@/lib/ai-recommendations';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [chatbotVisible, setChatbotVisible] = useState(false);
-  const [voiceOrderVisible, setVoiceOrderVisible] = useState(false);
-  const [scannerVisible, setScannerVisible] = useState(false);
-  const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
-  const [nearbySuppliers, setNearbySuppliers] = useState<any[]>([]);
   const [quickOrderCounts, setQuickOrderCounts] = useState({
     jar20L: 0,
     bottle1L: 0,
     bottle500ml: 0
   });
-  const [showRecommendations, setShowRecommendations] = useState(true);
-
-  // Mock user ID - in real app, get from auth
-  const userId = 'user_123';
-
-  // AI Stock Reminder State
-  const [stockReminder, setStockReminder] = useState({
-    show: true,
-    item: '20L Jars',
-    daysLeft: 2,
-    lastOrderDate: '3 days ago',
-    confidence: 0.89
-  });
-
-  useEffect(() => {
-    loadUserLocation();
-  }, []);
-
-  const loadUserLocation = async () => {
-    try {
-      const location = await getCurrentLocation();
-      if (location) {
-        setUserLocation(location);
-        loadNearbySuppliers(location.latitude, location.longitude);
-      }
-    } catch (error) {
-      console.error('Error getting location:', error);
-    }
-  };
-
-  const loadNearbySuppliers = async (lat: number, lng: number) => {
-    try {
-      const suppliers = await getNearbySuppliers(lat, lng, 10);
-      setNearbySuppliers(suppliers.slice(0, 3)); // Show top 3
-    } catch (error) {
-      console.error('Error loading suppliers:', error);
-      // Fallback to mock data with quality scores
-      setNearbySuppliers([
-        {
-          id: 1,
-          name: 'AquaPure Solutions',
-          distance: '0.8 km',
-          rating: 4.8,
-          deliveryTime: '8-12 min',
-          image: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-          certified: true,
-          price: '₹25/jar',
-          expressDelivery: true,
-          available: true,
-          qualityScore: 9.2,
-          deliverySpeedScore: 9.5,
-          reliabilityScore: 8.8,
-          customerSatisfaction: 0.94,
-          certifications: ['ISO 22000', 'BIS Certified', 'FSSAI Licensed'],
-          labReports: [{
-            id: 'report_1',
-            date: '2024-01-10',
-            parameters: {
-              ph: 7.2,
-              tds: 180,
-              chlorine: 0.1,
-              bacteria: 0,
-              minerals: { calcium: 45, magnesium: 12, potassium: 8 }
-            },
-            certification: 'NABL Certified Lab',
-            score: 9.2
-          }]
-        },
-        {
-          id: 2,
-          name: 'Crystal Water Co.',
-          distance: '1.2 km',
-          rating: 4.6,
-          deliveryTime: '10-15 min',
-          image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
-          certified: true,
-          price: '₹22/jar',
-          expressDelivery: false,
-          available: true,
-          qualityScore: 8.7,
-          deliverySpeedScore: 8.2,
-          reliabilityScore: 9.1,
-          customerSatisfaction: 0.89,
-          certifications: ['BIS Certified', 'FSSAI Licensed'],
-          labReports: [{
-            id: 'report_2',
-            date: '2024-01-08',
-            parameters: {
-              ph: 7.0,
-              tds: 220,
-              chlorine: 0.2,
-              bacteria: 0,
-              minerals: { calcium: 38, magnesium: 15, potassium: 6 }
-            },
-            certification: 'Government Lab',
-            score: 8.7
-          }]
-        }
-      ]);
-    }
-  };
 
   const quickOrderItems = [
     { 
@@ -183,6 +68,35 @@ export default function HomeScreen() {
     }
   ];
 
+  const nearbySuppliers = [
+    {
+      id: 1,
+      name: 'AquaPure Solutions',
+      distance: '0.8 km',
+      rating: 4.8,
+      deliveryTime: '8-12 min',
+      image: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      certified: true,
+      price: '₹25/jar',
+      expressDelivery: true,
+      available: true,
+      qualityScore: 9.2,
+    },
+    {
+      id: 2,
+      name: 'Crystal Water Co.',
+      distance: '1.2 km',
+      rating: 4.6,
+      deliveryTime: '10-15 min',
+      image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      certified: true,
+      price: '₹22/jar',
+      expressDelivery: false,
+      available: true,
+      qualityScore: 8.7,
+    }
+  ];
+
   const recentOrders = [
     {
       id: 1,
@@ -202,7 +116,6 @@ export default function HomeScreen() {
 
   const handleVoiceSearch = () => {
     setIsListening(true);
-    // Simulate voice recognition
     setTimeout(() => {
       setIsListening(false);
       setSearchQuery('20 liter water jar');
@@ -238,7 +151,6 @@ export default function HomeScreen() {
       ]
     );
 
-    // Reset counts
     setQuickOrderCounts({ jar20L: 0, bottle1L: 0, bottle500ml: 0 });
   };
 
@@ -251,48 +163,6 @@ export default function HomeScreen() {
         { text: 'Reorder', onPress: () => Alert.alert('Order Placed!', 'Estimated delivery: 8-12 minutes') }
       ]
     );
-  };
-
-  const handleVoiceOrderComplete = (orderData: any) => {
-    Alert.alert(
-      'Voice Order Placed!',
-      `Order: ${orderData.items.map((item: any) => `${item.quantity}x ${item.name}`).join(', ')}\nTotal: ₹${orderData.total}`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleBarcodeScanned = (productData: any) => {
-    Alert.alert(
-      'Product Added!',
-      `${productData.name} has been added to your cart.`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleRecommendationAction = (recommendation: Recommendation) => {
-    Alert.alert(
-      'AI Recommendation',
-      `Action: ${recommendation.action.type}\n\n${recommendation.title}`,
-      [
-        { text: 'Not Now', style: 'cancel' },
-        { text: 'Take Action', onPress: () => console.log('Execute recommendation:', recommendation) }
-      ]
-    );
-  };
-
-  const handleOrderSuggestion = (suggestion: any) => {
-    Alert.alert(
-      'Smart Suggestion',
-      `${suggestion.title}\n\nTotal: ₹${suggestion.items.reduce((sum: number, item: any) => sum + item.price, 0)}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Order Now', onPress: () => console.log('Execute suggestion:', suggestion) }
-      ]
-    );
-  };
-
-  const dismissStockReminder = () => {
-    setStockReminder(prev => ({ ...prev, show: false }));
   };
 
   return (
@@ -308,10 +178,7 @@ export default function HomeScreen() {
             <Text style={styles.userName}>John Doe</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.chatbotButton}
-              onPress={() => setChatbotVisible(true)}
-            >
+            <TouchableOpacity style={styles.chatbotButton}>
               <Bot size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.notificationButton}>
@@ -346,7 +213,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 10-Minute Delivery Promise */}
         <View style={styles.deliveryPromise}>
           <Timer size={16} color="#FFFFFF" />
           <Text style={styles.deliveryPromiseText}>10-Minute Express Delivery Available</Text>
@@ -355,77 +221,42 @@ export default function HomeScreen() {
 
       {/* Quick Action Buttons */}
       <View style={styles.quickActionsContainer}>
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setVoiceOrderVisible(true)}
-        >
+        <TouchableOpacity style={styles.quickActionButton}>
           <Volume2 size={20} color="#2563EB" />
           <Text style={styles.quickActionText}>Voice Order</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setScannerVisible(true)}
-        >
+        <TouchableOpacity style={styles.quickActionButton}>
           <ScanLine size={20} color="#059669" />
           <Text style={styles.quickActionText}>Scan & Order</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          style={styles.quickActionButton}
-          onPress={() => setChatbotVisible(true)}
-        >
+        <TouchableOpacity style={styles.quickActionButton}>
           <Bot size={20} color="#7C3AED" />
           <Text style={styles.quickActionText}>AI Assistant</Text>
         </TouchableOpacity>
       </View>
 
       {/* AI Stock Reminder */}
-      {stockReminder.show && (
-        <View style={styles.stockReminderCard}>
-          <View style={styles.stockReminderIcon}>
-            <Brain size={20} color="#F59E0B" />
-          </View>
-          <View style={styles.stockReminderContent}>
-            <Text style={styles.stockReminderTitle}>AI Stock Alert</Text>
-            <Text style={styles.stockReminderText}>
-              Your {stockReminder.item} might run out in {stockReminder.daysLeft} days
-            </Text>
-            <Text style={styles.stockReminderSubtext}>
-              Last order: {stockReminder.lastOrderDate} • {Math.round(stockReminder.confidence * 100)}% confidence
-            </Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.stockReminderAction}
-            onPress={() => Alert.alert('Quick Order', 'Order 2x 20L Jars now?')}
-          >
-            <Text style={styles.stockReminderActionText}>Order Now</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.stockReminderDismiss}
-            onPress={dismissStockReminder}
-          >
-            <Text style={styles.stockReminderDismissText}>×</Text>
-          </TouchableOpacity>
+      <View style={styles.stockReminderCard}>
+        <View style={styles.stockReminderIcon}>
+          <Brain size={20} color="#F59E0B" />
         </View>
-      )}
-
-      {/* AI Recommendations */}
-      {showRecommendations && (
-        <View style={styles.section}>
-          <AIRecommendations 
-            userId={userId}
-            onRecommendationAction={handleRecommendationAction}
-          />
+        <View style={styles.stockReminderContent}>
+          <Text style={styles.stockReminderTitle}>AI Stock Alert</Text>
+          <Text style={styles.stockReminderText}>
+            Your 20L Jars might run out in 2 days
+          </Text>
+          <Text style={styles.stockReminderSubtext}>
+            Last order: 3 days ago • 89% confidence
+          </Text>
         </View>
-      )}
-
-      {/* Smart Order Suggestions */}
-      <View style={styles.section}>
-        <SmartOrderSuggestions 
-          userId={userId}
-          onOrderSuggestion={handleOrderSuggestion}
-        />
+        <TouchableOpacity 
+          style={styles.stockReminderAction}
+          onPress={() => Alert.alert('Quick Order', 'Order 2x 20L Jars now?')}
+        >
+          <Text style={styles.stockReminderActionText}>Order Now</Text>
+        </TouchableOpacity>
       </View>
 
       {/* 1-Click Quick Order */}
@@ -504,7 +335,7 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* AI-Matched Suppliers with Quality Cards */}
+      {/* AI-Matched Suppliers */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>AI-Matched Quality Suppliers</Text>
@@ -514,15 +345,36 @@ export default function HomeScreen() {
         </View>
         
         {nearbySuppliers.map((supplier) => (
-          <SupplierQualityCard
-            key={supplier.id}
-            supplier={supplier}
-            onViewDetails={() => Alert.alert('Quality Report', `View full quality report for ${supplier.name}`)}
-          />
+          <View key={supplier.id} style={styles.supplierCard}>
+            <Image source={{ uri: supplier.image }} style={styles.supplierImage} />
+            <View style={styles.supplierInfo}>
+              <View style={styles.supplierHeader}>
+                <Text style={styles.supplierName}>{supplier.name}</Text>
+                {supplier.certified && (
+                  <Shield size={16} color="#059669" />
+                )}
+              </View>
+              <View style={styles.supplierMeta}>
+                <Star size={12} color="#F59E0B" />
+                <Text style={styles.supplierRating}>{supplier.rating}</Text>
+                <Text style={styles.supplierDistance}>• {supplier.distance}</Text>
+              </View>
+              <Text style={styles.supplierDelivery}>{supplier.deliveryTime}</Text>
+              <View style={styles.qualityScore}>
+                <Text style={styles.qualityScoreText}>Quality Score: {supplier.qualityScore}/10</Text>
+              </View>
+            </View>
+            <View style={styles.supplierActions}>
+              <Text style={styles.supplierPrice}>{supplier.price}</Text>
+              <TouchableOpacity style={styles.orderButton}>
+                <Text style={styles.orderButtonText}>Order</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ))}
       </View>
 
-      {/* Eco Impact & Subscription */}
+      {/* Eco Impact */}
       <View style={styles.section}>
         <View style={styles.ecoCard}>
           <View style={styles.ecoHeader}>
@@ -548,24 +400,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Modals */}
-      <AIChatbot 
-        visible={chatbotVisible}
-        onClose={() => setChatbotVisible(false)}
-      />
-      
-      <VoiceOrderModal
-        visible={voiceOrderVisible}
-        onClose={() => setVoiceOrderVisible(false)}
-        onOrderComplete={handleVoiceOrderComplete}
-      />
-      
-      <BarcodeScanner
-        visible={scannerVisible}
-        onClose={() => setScannerVisible(false)}
-        onScanComplete={handleBarcodeScanned}
-      />
     </ScrollView>
   );
 }
@@ -766,22 +600,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    marginRight: 8,
   },
   stockReminderActionText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
-  },
-  stockReminderDismiss: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  stockReminderDismissText: {
-    color: '#92400E',
-    fontSize: 18,
     fontWeight: '600',
   },
   section: {
@@ -939,6 +761,92 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '500',
     marginLeft: 4,
+  },
+  supplierCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  supplierImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 16,
+  },
+  supplierInfo: {
+    flex: 1,
+  },
+  supplierHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  supplierName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    flex: 1,
+    marginRight: 8,
+  },
+  supplierMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  supplierRating: {
+    fontSize: 12,
+    color: '#64748B',
+    marginLeft: 4,
+  },
+  supplierDistance: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  supplierDelivery: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  qualityScore: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  qualityScoreText: {
+    fontSize: 10,
+    color: '#059669',
+    fontWeight: '600',
+  },
+  supplierActions: {
+    alignItems: 'flex-end',
+  },
+  supplierPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#059669',
+    marginBottom: 8,
+  },
+  orderButton: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  orderButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   ecoCard: {
     backgroundColor: '#FFFFFF',

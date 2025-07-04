@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
-import { Package, Clock, CircleCheck as CheckCircle, Truck, MapPin, Phone, Star, RotateCcw, ChevronRight, Navigation, MessageCircle, Zap } from 'lucide-react-native';
+import { Package, Clock, CheckCircle, Truck, MapPin, Phone, Star, RotateCcw, ChevronRight, Navigation, MessageCircle, Zap } from 'lucide-react-native';
 
 export default function OrdersScreen() {
   const [activeTab, setActiveTab] = useState('active');
@@ -29,7 +29,6 @@ export default function OrdersScreen() {
       deliveryPerson: 'Rajesh Kumar',
       deliveryPhone: '+91 9876543210',
       deliveryPersonImage: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=40&h=40&fit=crop',
-      liveLocation: { lat: 12.9716, lng: 77.5946 },
       expressDelivery: true,
       trackingSteps: [
         { step: 'Order Placed', completed: true, time: '2:30 PM' },
@@ -59,28 +58,6 @@ export default function OrdersScreen() {
         { step: 'Out for Delivery', completed: false, time: '' },
         { step: 'Delivered', completed: false, time: '' }
       ]
-    },
-    {
-      id: 3,
-      orderNumber: '#AQ001236',
-      supplier: 'Himalayan Springs',
-      supplierImage: 'https://images.pexels.com/photos/1000084/pexels-photo-1000084.jpeg?auto=compress&cs=tinysrgb&w=60&h=60&fit=crop',
-      status: 'confirmed',
-      statusText: 'Confirmed',
-      items: [
-        { name: '500ml Bottles', quantity: 48, price: 192 }
-      ],
-      total: 192,
-      orderTime: '30 mins ago',
-      estimatedDelivery: '8-12 mins',
-      deliveryAddress: '123 Main Street, Bangalore',
-      expressDelivery: true,
-      trackingSteps: [
-        { step: 'Order Placed', completed: true, time: '3:30 PM' },
-        { step: 'Preparing', completed: false, time: '' },
-        { step: 'Out for Delivery', completed: false, time: '' },
-        { step: 'Delivered', completed: false, time: '' }
-      ]
     }
   ];
 
@@ -103,25 +80,6 @@ export default function OrdersScreen() {
       canReorder: true,
       actualDeliveryTime: '9 minutes',
       expressDelivery: true
-    },
-    {
-      id: 5,
-      orderNumber: '#AQ001229',
-      supplier: 'Pure Drop Waters',
-      supplierImage: 'https://images.pexels.com/photos/327090/pexels-photo-327090.jpeg?auto=compress&cs=tinysrgb&w=60&h=60&fit=crop',
-      status: 'delivered',
-      statusText: 'Delivered',
-      items: [
-        { name: '1L Bottles', quantity: 12, price: 120 }
-      ],
-      total: 120,
-      orderTime: '2 days ago',
-      deliveryTime: 'Delivered at 2:15 PM',
-      deliveryAddress: '123 Main Street, Bangalore',
-      rating: 4.0,
-      canReorder: true,
-      actualDeliveryTime: '18 minutes',
-      expressDelivery: false
     }
   ];
 
@@ -138,29 +96,6 @@ export default function OrdersScreen() {
       default:
         return '#64748B';
     }
-  };
-
-  const handleLiveTracking = (order: any) => {
-    Alert.alert(
-      'Live Tracking',
-      `Track ${order.deliveryPerson} delivering your order\n\nEstimated arrival: ${order.estimatedDelivery}`,
-      [
-        { text: 'Call Delivery Person', onPress: () => Alert.alert('Calling...', order.deliveryPhone) },
-        { text: 'Open Map', onPress: () => Alert.alert('Opening live map...') },
-        { text: 'Close' }
-      ]
-    );
-  };
-
-  const handleChatWithDelivery = (order: any) => {
-    Alert.alert(
-      'Chat with Delivery Person',
-      `Start a chat with ${order.deliveryPerson}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Start Chat', onPress: () => Alert.alert('Chat opened') }
-      ]
-    );
   };
 
   const renderActiveOrder = (order: any) => (
@@ -225,10 +160,7 @@ export default function OrdersScreen() {
               >
                 <Phone size={16} color="#2563EB" />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.chatButton}
-                onPress={() => handleChatWithDelivery(order)}
-              >
+              <TouchableOpacity style={styles.chatButton}>
                 <MessageCircle size={16} color="#2563EB" />
               </TouchableOpacity>
             </View>
@@ -271,10 +203,7 @@ export default function OrdersScreen() {
 
       <View style={styles.orderActions}>
         {order.status === 'out_for_delivery' && (
-          <TouchableOpacity 
-            style={styles.liveTrackButton}
-            onPress={() => handleLiveTracking(order)}
-          >
+          <TouchableOpacity style={styles.liveTrackButton}>
             <Navigation size={16} color="#FFFFFF" />
             <Text style={styles.liveTrackButtonText}>Live Track</Text>
           </TouchableOpacity>
