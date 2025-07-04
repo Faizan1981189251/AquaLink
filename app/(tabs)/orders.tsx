@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
-import { Package, Clock, CheckCircle, Truck, MapPin, Phone, Star, RotateCcw, ChevronRight, Navigation, MessageCircle, Zap } from 'lucide-react-native';
+import { Package, Clock, CircleCheck as CheckCircle, Truck, MapPin, Phone, Star, RotateCcw, ChevronRight, Navigation, MessageCircle, Zap } from 'lucide-react-native';
 
 export default function OrdersScreen() {
   const [activeTab, setActiveTab] = useState('active');

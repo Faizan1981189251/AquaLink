@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { TrendingUp, TrendingDown, DollarSign, Package, Users, Calendar, BarChart3, PieChart } from 'lucide-react-native';
+import { TrendingUp, TrendingDown, DollarSign, Package, Users, Calendar, ChartBar as BarChart3, ChartPie as PieChart } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 

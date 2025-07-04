@@ -1,30 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { 
-  User, 
-  MapPin, 
-  CreditCard, 
-  Bell, 
-  Shield, 
-  HelpCircle, 
-  Star, 
-  Gift, 
-  Settings, 
-  LogOut, 
-  ChevronRight, 
-  Droplets, 
-  Recycle, 
-  Edit,
-  Calendar,
-  TrendingUp,
-  Clock,
-  Package,
-  Building,
-  Zap,
-  Bot,
-  MessageCircle
-} from 'lucide-react-native';
+import { User, MapPin, CreditCard, Bell, Shield, CircleHelp as HelpCircle, Star, Gift, Settings, LogOut, ChevronRight, Droplets, Recycle, CreditCard as Edit, Calendar, TrendingUp, Clock, Package, Building, Zap, Bot, MessageCircle } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const router = useRouter();

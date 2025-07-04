@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { Search, Filter, Clock, CheckCircle, Package, MapPin, Phone, Eye, MoreVertical } from 'lucide-react-native';
+import { Search, Filter, Clock, CircleCheck as CheckCircle, Package, MapPin, Phone, Eye, MoveVertical as MoreVertical } from 'lucide-react-native';
 
 export default function SupplierOrdersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
