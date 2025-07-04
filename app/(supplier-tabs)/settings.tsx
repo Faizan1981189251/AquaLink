@@ -1,21 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { 
-  User, 
-  Store, 
-  Bell, 
-  CreditCard, 
-  Shield, 
-  HelpCircle, 
-  Settings as SettingsIcon,
-  LogOut,
-  ChevronRight,
-  Clock,
-  Package,
-  DollarSign,
-  MapPin
-} from 'lucide-react-native';
+import { User, Store, Bell, CreditCard, Shield, CircleHelp as HelpCircle, Settings as SettingsIcon, LogOut, ChevronRight, Clock, Package, DollarSign, MapPin } from 'lucide-react-native';
 
 export default function SupplierSettingsScreen() {
   const router = useRouter();
