@@ -1,0 +1,1928 @@
+/* Water-themed animations and effects */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes flow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes bubble {
+  0% {
+    transform: translateY(100vh) scale(0);
+  }
+  10% {
+    transform: translateY(90vh) scale(0.1);
+  }
+  90% {
+    transform: translateY(10vh) scale(0.8);
+  }
+  100% {
+    transform: translateY(0vh) scale(1);
+    opacity: 0;
+  }
+}
+
+.water-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.water-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.3);
+  transform: translate(-50%, -50%);
+  animation: ripple 1.5s infinite;
+}
+
+.wave-animation {
+  animation: wave 2s ease-in-out infinite;
+}
+
+.water-flow {
+  position: relative;
+  overflow: hidden;
+}
+
+.water-flow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
+  animation: flow 2s linear infinite;
+}
+
+.bubble-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bubble {
+  position: absolute;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+  border-radius: 50%;
+  animation: bubble 8s infinite linear;
+}
+
+.water-gradient {
+  background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 25%, #06b6d4 50%, #0891b2 75%, #0e7490 100%);
+}
+
+.fresh-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #059669 25%, #0d9488 50%, #0f766e 75%, #115e59 100%);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.water-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(240, 249, 255, 0.8));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+}
+
+.droplet-shadow {
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2), 0 6px 12px rgba(59, 130, 246, 0.1);
+}
+
+.renewable-accent {
+  background: linear-gradient(45deg, #10b981, #059669);
+  color: white;
+}
+
+.fresh-accent {
+  background: linear-gradient(45deg, #06b6d4, #0891b2);
+  color: white;
+}
+</parameter>
+</invoke>
+
+<action type="file" filePath="src/lib/database.ts" contentType="content">
+// Simple in-memory database simulation for demo
+// In production, you would use Firebase, Supabase, or another database
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  userType: 'customer' | 'supplier';
+  location?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  preferences?: {
+    notifications: boolean;
+    autoReorder: boolean;
+    ecoMode: boolean;
+  };
+  createdAt: Date;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  supplierId: string;
+  items: OrderItem[];
+  total: number;
+  status: 'pending' | 'confirmed' | 'preparing' | 'out_for_delivery' | 'delivered' | 'cancelled';
+  orderType: 'home' | 'office' | 'party';
+  deliveryAddress: string;
+  deliveryLocation: {
+    latitude: number;
+    longitude: number;
+  };
+  paymentMethod: string;
+  deliveryPersonId?: string;
+  estimatedDelivery?: Date;
+  actualDelivery?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  size: string;
+  brand: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  businessName: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  serviceRadius: number; // in km
+  rating: number;
+  totalOrders: number;
+  isActive: boolean;
+  products: Product[];
+  operatingHours: {
+    open: string;
+    close: string;
+  };
+  createdAt: Date;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  size: string;
+  price: number;
+  brand: string;
+  inStock: boolean;
+  minOrder: number;
+}
+
+export interface DeliveryPerson {
+  id: string;
+  name: string;
+  phone: string;
+  currentLocation: {
+    latitude: number;
+    longitude: number;
+  };
+  isAvailable: boolean;
+  currentOrderId?: string;
+  rating: number;
+}
+
+// In-memory storage (replace with real database in production)
+class InMemoryDatabase {
+  private users: Map<string, User> = new Map();
+  private orders: Map<string, Order> = new Map();
+  private suppliers: Map<string, Supplier> = new Map();
+  private deliveryPersons: Map<string, DeliveryPerson> = new Map();
+
+  constructor() {
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Sample suppliers
+    const supplier1: Supplier = {
+      id: 'sup_1',
+      name: 'Rajesh Kumar',
+      email: 'rajesh@aquapure.com',
+      phone: '+91 9876543210',
+      businessName: 'AquaPure Solutions',
+      location: {
+        latitude: 12.9716,
+        longitude: 77.5946,
+        address: 'HSR Layout, Bangalore'
+      },
+      serviceRadius: 10,
+      rating: 4.8,
+      totalOrders: 1250,
+      isActive: true,
+      products: [
+        { id: 'prod_1', name: '20L Water Jar', size: '20L', price: 50, brand: 'AquaPure', inStock: true, minOrder: 1 },
+        { id: 'prod_2', name: '1L Water Bottle', size: '1L', price: 10, brand: 'AquaPure', inStock: true, minOrder: 6 },
+        { id: 'prod_3', name: '500ml Water Bottle', size: '500ml', price: 4, brand: 'AquaPure', inStock: true, minOrder: 12 }
+      ],
+      operatingHours: { open: '06:00', close: '22:00' },
+      createdAt: new Date('2023-01-15')
+    };
+
+    this.suppliers.set(supplier1.id, supplier1);
+
+    // Sample delivery persons
+    const deliveryPerson1: DeliveryPerson = {
+      id: 'del_1',
+      name: 'Amit Singh',
+      phone: '+91 9876543211',
+      currentLocation: {
+        latitude: 12.9716,
+        longitude: 77.5946
+      },
+      isAvailable: true,
+      rating: 4.7
+    };
+
+    this.deliveryPersons.set(deliveryPerson1.id, deliveryPerson1);
+  }
+
+  // User operations
+  async createUser(userData: Omit<User, 'id' | 'createdAt'>): Promise<User> {
+    const user: User = {
+      ...userData,
+      id: `user_${Date.now()}`,
+      createdAt: new Date()
+    };
+    this.users.set(user.id, user);
+    return user;
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    return this.users.get(id) || null;
+  }
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    for (const user of this.users.values()) {
+      if (user.email === email) {
+        return user;
+      }
+    }
+    return null;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | null> {
+    const user = this.users.get(id);
+    if (!user) return null;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  // Order operations
+  async createOrder(orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<Order> {
+    const order: Order = {
+      ...orderData,
+      id: `order_${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.orders.set(order.id, order);
+    return order;
+  }
+
+  async getOrderById(id: string): Promise<Order | null> {
+    return this.orders.get(id) || null;
+  }
+
+  async getOrdersByUserId(userId: string): Promise<Order[]> {
+    return Array.from(this.orders.values()).filter(order => order.userId === userId);
+  }
+
+  async getOrdersBySupplierId(supplierId: string): Promise<Order[]> {
+    return Array.from(this.orders.values()).filter(order => order.supplierId === supplierId);
+  }
+
+  async updateOrderStatus(id: string, status: Order['status'], additionalData?: Partial<Order>): Promise<Order | null> {
+    const order = this.orders.get(id);
+    if (!order) return null;
+    
+    const updatedOrder = { 
+      ...order, 
+      status, 
+      ...additionalData,
+      updatedAt: new Date() 
+    };
+    this.orders.set(id, updatedOrder);
+    return updatedOrder;
+  }
+
+  // Supplier operations
+  async getNearbySuppliers(latitude: number, longitude: number, radiusKm: number = 10): Promise<Supplier[]> {
+    const suppliers = Array.from(this.suppliers.values()).filter(supplier => {
+      if (!supplier.isActive) return false;
+      
+      const distance = this.calculateDistance(
+        latitude, longitude,
+        supplier.location.latitude, supplier.location.longitude
+      );
+      
+      return distance <= radiusKm;
+    });
+
+    return suppliers.sort((a, b) => {
+      const distanceA = this.calculateDistance(latitude, longitude, a.location.latitude, a.location.longitude);
+      const distanceB = this.calculateDistance(latitude, longitude, b.location.latitude, b.location.longitude);
+      return distanceA - distanceB;
+    });
+  }
+
+  async getSupplierById(id: string): Promise<Supplier | null> {
+    return this.suppliers.get(id) || null;
+  }
+
+  // Delivery person operations
+  async getAvailableDeliveryPersons(): Promise<DeliveryPerson[]> {
+    return Array.from(this.deliveryPersons.values()).filter(person => person.isAvailable);
+  }
+
+  async updateDeliveryPersonLocation(id: string, location: { latitude: number; longitude: number }): Promise<void> {
+    const person = this.deliveryPersons.get(id);
+    if (person) {
+      person.currentLocation = location;
+      this.deliveryPersons.set(id, person);
+    }
+  }
+
+  // Utility functions
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  // Analytics for suppliers
+  async getSupplierAnalytics(supplierId: string, period: 'day' | 'week' | 'month' = 'day') {
+    const orders = await this.getOrdersBySupplierId(supplierId);
+    const now = new Date();
+    let startDate: Date;
+
+    switch (period) {
+      case 'day':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+    }
+
+    const periodOrders = orders.filter(order => order.createdAt >= startDate);
+    const completedOrders = periodOrders.filter(order => order.status === 'delivered');
+
+    return {
+      totalOrders: periodOrders.length,
+      completedOrders: completedOrders.length,
+      totalEarnings: completedOrders.reduce((sum, order) => sum + order.total, 0),
+      avgOrderValue: completedOrders.length > 0 ? completedOrders.reduce((sum, order) => sum + order.total, 0) / completedOrders.length : 0,
+      pendingOrders: periodOrders.filter(order => order.status === 'pending').length,
+      preparingOrders: periodOrders.filter(order => order.status === 'preparing').length,
+      outForDeliveryOrders: periodOrders.filter(order => order.status === 'out_for_delivery').length
+    };
+  }
+}
+
+// Export singleton instance
+export const database = new InMemoryDatabase();
+
+// Helper functions for common operations
+export const dbHelpers = {
+  async authenticateUser(email: string, password: string): Promise<User | null> {
+    // In production, you would hash and compare passwords
+    const user = await database.getUserByEmail(email);
+    return user; // Simplified for demo
+  },
+
+  async registerUser(userData: {
+    email: string;
+    password: string;
+    name: string;
+    phone: string;
+    userType: 'customer' | 'supplier';
+  }): Promise<User> {
+    // In production, you would hash the password
+    return await database.createUser({
+      email: userData.email,
+      name: userData.name,
+      phone: userData.phone,
+      userType: userData.userType,
+      preferences: {
+        notifications: true,
+        autoReorder: false,
+        ecoMode: false
+      }
+    });
+  },
+
+  async placeOrder(orderData: {
+    userId: string;
+    supplierId: string;
+    items: OrderItem[];
+    total: number;
+    orderType: 'home' | 'office' | 'party';
+    deliveryAddress: string;
+    deliveryLocation: { latitude: number; longitude: number };
+    paymentMethod: string;
+  }): Promise<Order> {
+    return await database.createOrder({
+      ...orderData,
+      status: 'pending'
+    });
+  }
+};
+</parameter>
+</invoke>
+
+<action type="file" filePath="src/lib/maps.ts" contentType="content">
+// Google Maps integration for location services and live tracking
+
+export interface LocationCoords {
+  latitude: number;
+  longitude: number;
+}
+
+export interface MapConfig {
+  center: LocationCoords;
+  zoom: number;
+  apiKey: string;
+}
+
+export class GoogleMapsService {
+  private static instance: GoogleMapsService;
+  private apiKey: string;
+  private map: google.maps.Map | null = null;
+  private markers: Map<string, google.maps.Marker> = new Map();
+  private directionsService: google.maps.DirectionsService | null = null;
+  private directionsRenderer: google.maps.DirectionsRenderer | null = null;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
+  static getInstance(apiKey: string = 'AIzaSyCUtljQ7ydcbT33YJwMK22c678bz9pmt4g'): GoogleMapsService {
+    if (!GoogleMapsService.instance) {
+      GoogleMapsService.instance = new GoogleMapsService(apiKey);
+    }
+    return GoogleMapsService.instance;
+  }
+
+  // Initialize Google Maps
+  async initializeMap(containerId: string, config: MapConfig): Promise<google.maps.Map> {
+    await this.loadGoogleMapsScript();
+    
+    const mapElement = document.getElementById(containerId);
+    if (!mapElement) {
+      throw new Error(`Map container with id '${containerId}' not found`);
+    }
+
+    this.map = new google.maps.Map(mapElement, {
+      center: config.center,
+      zoom: config.zoom,
+      styles: this.getWaterThemeMapStyles(),
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false
+    });
+
+    this.directionsService = new google.maps.DirectionsService();
+    this.directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: false,
+      polylineOptions: {
+        strokeColor: '#3B82F6',
+        strokeWeight: 4,
+        strokeOpacity: 0.8
+      }
+    });
+    this.directionsRenderer.setMap(this.map);
+
+    return this.map;
+  }
+
+  // Load Google Maps script dynamically
+  private async loadGoogleMapsScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (window.google && window.google.maps) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places,geometry`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+      
+      document.head.appendChild(script);
+    });
+  }
+
+  // Get water-themed map styles
+  private getWaterThemeMapStyles(): google.maps.MapTypeStyle[] {
+    return [
+      {
+        featureType: 'water',
+        elementType: 'geometry',
+        stylers: [{ color: '#3B82F6' }, { lightness: 20 }]
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#FFFFFF' }]
+      },
+      {
+        featureType: 'landscape',
+        elementType: 'geometry',
+        stylers: [{ color: '#F0F9FF' }]
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry',
+        stylers: [{ color: '#E0F2FE' }]
+      },
+      {
+        featureType: 'poi',
+        elementType: 'geometry',
+        stylers: [{ color: '#DBEAFE' }]
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'geometry',
+        stylers: [{ color: '#DCFCE7' }]
+      }
+    ];
+  }
+
+  // Get current location
+  async getCurrentLocation(): Promise<LocationCoords> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          reject(new Error(`Geolocation error: ${error.message}`));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    });
+  }
+
+  // Watch location changes for live tracking
+  watchLocation(callback: (location: LocationCoords) => void): number {
+    if (!navigator.geolocation) {
+      throw new Error('Geolocation is not supported');
+    }
+
+    return navigator.geolocation.watchPosition(
+      (position) => {
+        callback({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+      },
+      (error) => {
+        console.error('Location watch error:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 1000
+      }
+    );
+  }
+
+  // Stop watching location
+  stopWatchingLocation(watchId: number): void {
+    navigator.geolocation.clearWatch(watchId);
+  }
+
+  // Add marker to map
+  addMarker(id: string, location: LocationCoords, options: {
+    title?: string;
+    icon?: string;
+    color?: string;
+    type?: 'customer' | 'supplier' | 'delivery';
+  } = {}): google.maps.Marker | null {
+    if (!this.map) return null;
+
+    const marker = new google.maps.Marker({
+      position: location,
+      map: this.map,
+      title: options.title,
+      icon: this.getMarkerIcon(options.type || 'customer', options.color),
+      animation: google.maps.Animation.DROP
+    });
+
+    this.markers.set(id, marker);
+    return marker;
+  }
+
+  // Get custom marker icon
+  private getMarkerIcon(type: 'customer' | 'supplier' | 'delivery', color?: string): google.maps.Icon {
+    const baseUrl = 'data:image/svg+xml;charset=UTF-8,';
+    let svg = '';
+
+    switch (type) {
+      case 'customer':
+        svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" fill="${color || '#10B981'}" stroke="white" stroke-width="2"/>
+          <path d="M16 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 12c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z" fill="white"/>
+        </svg>`;
+        break;
+      case 'supplier':
+        svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" fill="${color || '#3B82F6'}" stroke="white" stroke-width="2"/>
+          <path d="M8 12h16v8H8v-8zm2 2v4h12v-4H10zm6-6c1.1 0 2 .9 2 2H14c0-1.1.9-2 2-2z" fill="white"/>
+        </svg>`;
+        break;
+      case 'delivery':
+        svg = `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" fill="${color || '#F59E0B'}" stroke="white" stroke-width="2"/>
+          <path d="M8 16l4-4v3h8v2h-8v3l-4-4z" fill="white"/>
+        </svg>`;
+        break;
+    }
+
+    return {
+      url: baseUrl + encodeURIComponent(svg),
+      scaledSize: new google.maps.Size(32, 32),
+      anchor: new google.maps.Point(16, 16)
+    };
+  }
+
+  // Update marker position
+  updateMarkerPosition(id: string, location: LocationCoords): void {
+    const marker = this.markers.get(id);
+    if (marker) {
+      marker.setPosition(location);
+    }
+  }
+
+  // Remove marker
+  removeMarker(id: string): void {
+    const marker = this.markers.get(id);
+    if (marker) {
+      marker.setMap(null);
+      this.markers.delete(id);
+    }
+  }
+
+  // Calculate route between two points
+  async calculateRoute(origin: LocationCoords, destination: LocationCoords): Promise<google.maps.DirectionsResult> {
+    if (!this.directionsService) {
+      throw new Error('Directions service not initialized');
+    }
+
+    return new Promise((resolve, reject) => {
+      this.directionsService!.route(
+        {
+          origin,
+          destination,
+          travelMode: google.maps.TravelMode.DRIVING,
+          optimizeWaypoints: true,
+          avoidHighways: false,
+          avoidTolls: false
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            resolve(result);
+          } else {
+            reject(new Error(`Directions request failed: ${status}`));
+          }
+        }
+      );
+    });
+  }
+
+  // Display route on map
+  async displayRoute(origin: LocationCoords, destination: LocationCoords): Promise<void> {
+    if (!this.directionsRenderer) {
+      throw new Error('Directions renderer not initialized');
+    }
+
+    try {
+      const result = await this.calculateRoute(origin, destination);
+      this.directionsRenderer.setDirections(result);
+    } catch (error) {
+      console.error('Error displaying route:', error);
+      throw error;
+    }
+  }
+
+  // Calculate distance between two points
+  calculateDistance(point1: LocationCoords, point2: LocationCoords): number {
+    const R = 6371; // Earth's radius in km
+    const dLat = (point2.latitude - point1.latitude) * Math.PI / 180;
+    const dLng = (point2.longitude - point1.longitude) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(point1.latitude * Math.PI / 180) * Math.cos(point2.latitude * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  // Estimate delivery time based on distance
+  estimateDeliveryTime(distanceKm: number, averageSpeedKmh: number = 30): number {
+    const timeHours = distanceKm / averageSpeedKmh;
+    const timeMinutes = Math.round(timeHours * 60);
+    return Math.max(timeMinutes, 5); // Minimum 5 minutes
+  }
+
+  // Geocode address to coordinates
+  async geocodeAddress(address: string): Promise<LocationCoords> {
+    await this.loadGoogleMapsScript();
+    
+    const geocoder = new google.maps.Geocoder();
+    
+    return new Promise((resolve, reject) => {
+      geocoder.geocode({ address }, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+          const location = results[0].geometry.location;
+          resolve({
+            latitude: location.lat(),
+            longitude: location.lng()
+          });
+        } else {
+          reject(new Error(`Geocoding failed: ${status}`));
+        }
+      });
+    });
+  }
+
+  // Reverse geocode coordinates to address
+  async reverseGeocode(location: LocationCoords): Promise<string> {
+    await this.loadGoogleMapsScript();
+    
+    const geocoder = new google.maps.Geocoder();
+    
+    return new Promise((resolve, reject) => {
+      geocoder.geocode({ location }, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+          resolve(results[0].formatted_address);
+        } else {
+          reject(new Error(`Reverse geocoding failed: ${status}`));
+        }
+      });
+    });
+  }
+
+  // Center map on location
+  centerMap(location: LocationCoords, zoom?: number): void {
+    if (this.map) {
+      this.map.setCenter(location);
+      if (zoom) {
+        this.map.setZoom(zoom);
+      }
+    }
+  }
+
+  // Fit map to show all markers
+  fitToMarkers(): void {
+    if (!this.map || this.markers.size === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+    this.markers.forEach(marker => {
+      const position = marker.getPosition();
+      if (position) {
+        bounds.extend(position);
+      }
+    });
+
+    this.map.fitBounds(bounds);
+  }
+}
+
+// Export singleton instance
+export const mapsService = GoogleMapsService.getInstance();
+
+// Helper functions for common map operations
+export const mapHelpers = {
+  async initializeDeliveryTracking(orderId: string, customerLocation: LocationCoords, supplierLocation: LocationCoords) {
+    const mapContainer = document.getElementById('delivery-map');
+    if (!mapContainer) return null;
+
+    const map = await mapsService.initializeMap('delivery-map', {
+      center: customerLocation,
+      zoom: 14,
+      apiKey: 'AIzaSyCUtljQ7ydcbT33YJwMK22c678bz9pmt4g'
+    });
+
+    // Add markers
+    mapsService.addMarker('customer', customerLocation, {
+      title: 'Delivery Address',
+      type: 'customer'
+    });
+
+    mapsService.addMarker('supplier', supplierLocation, {
+      title: 'Water Supplier',
+      type: 'supplier'
+    });
+
+    // Display route
+    await mapsService.displayRoute(supplierLocation, customerLocation);
+
+    return map;
+  },
+
+  async trackDeliveryPerson(deliveryPersonId: string, currentLocation: LocationCoords) {
+    mapsService.updateMarkerPosition(deliveryPersonId, currentLocation);
+  },
+
+  async findNearbySuppliers(userLocation: LocationCoords, maxDistance: number = 10) {
+    // This would integrate with your database to find suppliers within range
+    // For now, returning mock data
+    return [
+      {
+        id: 'sup_1',
+        name: 'AquaPure Solutions',
+        location: { latitude: 12.9716, longitude: 77.5946 },
+        distance: mapsService.calculateDistance(userLocation, { latitude: 12.9716, longitude: 77.5946 })
+      }
+    ].filter(supplier => supplier.distance <= maxDistance);
+  }
+};
+
+// Declare global google maps types
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+</parameter>
+</invoke>
+
+<action type="file" filePath="src/components/WaterBackground.tsx" contentType="content">
+import React, { useEffect, useRef } from 'react';
+
+interface WaterBackgroundProps {
+  children: React.ReactNode;
+  variant?: 'bubbles' | 'waves' | 'ripples';
+  intensity?: 'light' | 'medium' | 'strong';
+}
+
+export default function WaterBackground({ 
+  children, 
+  variant = 'bubbles', 
+  intensity = 'light' 
+}: WaterBackgroundProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (variant === 'bubbles') {
+      createBubbles();
+    }
+  }, [variant, intensity]);
+
+  const createBubbles = () => {
+    if (!containerRef.current) return;
+
+    const bubbleCount = intensity === 'light' ? 5 : intensity === 'medium' ? 10 : 15;
+    
+    for (let i = 0; i < bubbleCount; i++) {
+      setTimeout(() => {
+        createBubble();
+      }, i * 1000);
+    }
+
+    // Continue creating bubbles
+    const interval = setInterval(() => {
+      createBubble();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  };
+
+  const createBubble = () => {
+    if (!containerRef.current) return;
+
+    const bubble = document.createElement('div');
+    const size = Math.random() * 60 + 20;
+    const left = Math.random() * 100;
+    const animationDuration = Math.random() * 3 + 4;
+
+    bubble.className = 'bubble';
+    bubble.style.cssText = `
+      position: absolute;
+      left: ${left}%;
+      width: ${size}px;
+      height: ${size}px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+      border-radius: 50%;
+      animation: bubble ${animationDuration}s infinite linear;
+      pointer-events: none;
+    `;
+
+    containerRef.current.appendChild(bubble);
+
+    // Remove bubble after animation
+    setTimeout(() => {
+      if (bubble.parentNode) {
+        bubble.parentNode.removeChild(bubble);
+      }
+    }, animationDuration * 1000);
+  };
+
+  const getBackgroundClass = () => {
+    switch (variant) {
+      case 'waves':
+        return 'wave-background';
+      case 'ripples':
+        return 'ripple-background';
+      default:
+        return 'bubble-background';
+    }
+  };
+
+  return (
+    <div 
+      ref={containerRef}
+      className={`relative min-h-screen overflow-hidden ${getBackgroundClass()}`}
+      style={{
+        background: variant === 'waves' 
+          ? 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 25%, #06b6d4 50%, #0891b2 75%, #0e7490 100%)'
+          : 'linear-gradient(to bottom, #f0f9ff, #e0f2fe, #bae6fd)'
+      }}
+    >
+      {children}
+      
+      {variant === 'waves' && (
+        <div className="absolute bottom-0 left-0 w-full">
+          <svg
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            className="relative block w-full h-16"
+          >
+            <path
+              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+              opacity=".25"
+              className="fill-current text-white"
+            />
+            <path
+              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+              opacity=".5"
+              className="fill-current text-white"
+            />
+            <path
+              d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+              className="fill-current text-white"
+            />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}
+</parameter>
+</invoke>
+
+<action type="file" filePath="src/components/LiveTrackingMap.tsx" contentType="content">
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Navigation, Phone, MessageCircle, RefreshCw } from 'lucide-react';
+import { mapsService, LocationCoords } from '../lib/maps';
+
+interface LiveTrackingMapProps {
+  visible: boolean;
+  onClose: () => void;
+  order: {
+    id: string;
+    deliveryPerson: {
+      name: string;
+      phone: string;
+      location: LocationCoords;
+    };
+    customerLocation: LocationCoords;
+    estimatedDelivery: string;
+  };
+}
+
+export default function LiveTrackingMap({ visible, onClose, order }: LiveTrackingMapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [deliveryLocation, setDeliveryLocation] = useState<LocationCoords>(order.deliveryPerson.location);
+  const [eta, setEta] = useState(order.estimatedDelivery);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  useEffect(() => {
+    if (visible && mapRef.current) {
+      initializeMap();
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    // Simulate real-time location updates
+    const interval = setInterval(() => {
+      setDeliveryLocation(prev => {
+        const newLat = prev.latitude + (Math.random() - 0.5) * 0.001;
+        const newLng = prev.longitude + (Math.random() - 0.5) * 0.001;
+        
+        const distance = mapsService.calculateDistance(
+          newLat,
+          newLng,
+          order.customerLocation.latitude,
+          order.customerLocation.longitude
+        );
+        
+        const newEta = mapsService.estimateDeliveryTime(distance);
+        setEta(`${newEta} mins`);
+        
+        // Update marker position
+        mapsService.updateMarkerPosition('delivery-person', { latitude: newLat, longitude: newLng });
+        
+        return { latitude: newLat, longitude: newLng };
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [visible, order.customerLocation]);
+
+  const initializeMap = async () => {
+    try {
+      const mapInstance = await mapsService.initializeMap('live-tracking-map', {
+        center: {
+          latitude: (deliveryLocation.latitude + order.customerLocation.latitude) / 2,
+          longitude: (deliveryLocation.longitude + order.customerLocation.longitude) / 2
+        },
+        zoom: 14,
+        apiKey: 'AIzaSyCUtljQ7ydcbT33YJwMK22c678bz9pmt4g'
+      });
+
+      setMap(mapInstance);
+
+      // Add markers
+      mapsService.addMarker('delivery-person', deliveryLocation, {
+        title: order.deliveryPerson.name,
+        type: 'delivery'
+      });
+
+      mapsService.addMarker('customer', order.customerLocation, {
+        title: 'Your Location',
+        type: 'customer'
+      });
+
+      // Display route
+      await mapsService.displayRoute(deliveryLocation, order.customerLocation);
+      
+      // Fit map to show both markers
+      mapsService.fitToMarkers();
+    } catch (error) {
+      console.error('Error initializing map:', error);
+    }
+  };
+
+  const refreshLocation = async () => {
+    setIsRefreshing(true);
+    
+    // Simulate API call to get latest location
+    setTimeout(() => {
+      setIsRefreshing(false);
+      alert('Location Updated: Delivery person location has been refreshed.');
+    }, 1000);
+  };
+
+  const callDeliveryPerson = () => {
+    if (confirm(`Call ${order.deliveryPerson.name} at ${order.deliveryPerson.phone}?`)) {
+      console.log('Calling...');
+    }
+  };
+
+  const chatWithDeliveryPerson = () => {
+    if (confirm(`Start a chat with ${order.deliveryPerson.name}?`)) {
+      console.log('Opening chat...');
+    }
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="water-gradient px-6 pt-8 pb-4 text-white">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold mb-1">Live Tracking</h2>
+              <p className="text-sm opacity-90">Order #{order.id}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+
+        {/* Map */}
+        <div className="relative h-64">
+          <div
+            id="live-tracking-map"
+            ref={mapRef}
+            className="w-full h-full"
+          />
+          
+          <button
+            onClick={refreshLocation}
+            disabled={isRefreshing}
+            className={`absolute top-4 right-4 w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg ${
+              isRefreshing ? 'opacity-75' : ''
+            }`}
+          >
+            <RefreshCw size={20} className="text-white" />
+          </button>
+        </div>
+
+        {/* Delivery Info */}
+        <div className="p-6">
+          <div className="bg-green-50 rounded-2xl p-4 mb-4 flex items-center">
+            <Navigation size={24} className="text-green-600 mr-3" />
+            <div className="flex-1">
+              <p className="text-lg font-bold text-green-800">ETA: {eta}</p>
+              <p className="text-sm text-green-600">Estimated arrival time</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-1">{order.deliveryPerson.name}</h3>
+                <p className="text-sm text-gray-600">On the way to you</p>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={callDeliveryPerson}
+                  className="w-11 h-11 bg-blue-100 rounded-full flex items-center justify-center"
+                >
+                  <Phone size={20} className="text-blue-600" />
+                </button>
+                
+                <button
+                  onClick={chatWithDeliveryPerson}
+                  className="w-11 h-11 bg-blue-100 rounded-full flex items-center justify-center"
+                >
+                  <MessageCircle size={20} className="text-blue-600" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Updates */}
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-900 mb-3">Delivery Updates</h3>
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-600 rounded-full mr-3" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Order confirmed</p>
+                  <p className="text-xs text-gray-500">2:30 PM</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-600 rounded-full mr-3" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Order prepared</p>
+                  <p className="text-xs text-gray-500">2:45 PM</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-600 rounded-full mr-3" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">Out for delivery</p>
+                  <p className="text-xs text-gray-500">3:15 PM</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gray-300 rounded-full mr-3" />
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500">Delivered</p>
+                  <p className="text-xs text-gray-400">-</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+</parameter>
+</invoke>
+
+<action type="file" filePath="src/pages/Home.tsx" contentType="content">
+import React, { useState, useEffect } from 'react';
+import { 
+  Droplets, 
+  MapPin, 
+  Search, 
+  Bell, 
+  Star, 
+  Zap, 
+  Shield, 
+  Recycle,
+  Clock,
+  Mic,
+  RotateCcw,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Timer,
+  Leaf,
+  Package,
+  Bot,
+  ScanLine,
+  Volume2,
+  Brain,
+  Navigation
+} from 'lucide-react';
+import WaterBackground from '../components/WaterBackground';
+import LiveTrackingMap from '../components/LiveTrackingMap';
+import { mapsService, LocationCoords } from '../lib/maps';
+import { database } from '../lib/database';
+
+export default function Home() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
+  const [showLiveTracking, setShowLiveTracking] = useState(false);
+  const [quickOrderCounts, setQuickOrderCounts] = useState({
+    jar20L: 0,
+    bottle1L: 0,
+    bottle500ml: 0
+  });
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  const getCurrentLocation = async () => {
+    try {
+      const location = await mapsService.getCurrentLocation();
+      setUserLocation(location);
+    } catch (error) {
+      console.error('Error getting location:', error);
+      // Use default location (Bangalore)
+      setUserLocation({ latitude: 12.9716, longitude: 77.5946 });
+    }
+  };
+
+  const quickOrderItems = [
+    { 
+      id: 'jar20L', 
+      name: '20L Jar', 
+      price: 50, 
+      icon: <Droplets size={24} className="text-white" />,
+      color: 'fresh-gradient',
+      estimatedStock: 2,
+      avgConsumption: '1 jar/week'
+    },
+    { 
+      id: 'bottle1L', 
+      name: '1L Bottles', 
+      price: 10, 
+      icon: <Package size={24} className="text-white" />,
+      color: 'renewable-accent',
+      estimatedStock: 8,
+      avgConsumption: '12 bottles/week'
+    },
+    { 
+      id: 'bottle500ml', 
+      name: '500ml Bottles', 
+      price: 4, 
+      icon: <Package size={24} className="text-white" />,
+      color: 'water-gradient',
+      estimatedStock: 15,
+      avgConsumption: '20 bottles/week'
+    }
+  ];
+
+  const nearbySuppliers = [
+    {
+      id: 1,
+      name: 'AquaPure Solutions',
+      distance: '0.8 km',
+      rating: 4.8,
+      deliveryTime: '8-12 min',
+      image: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      certified: true,
+      price: '₹25/jar',
+      expressDelivery: true,
+      available: true,
+      qualityScore: 9.2,
+    },
+    {
+      id: 2,
+      name: 'Crystal Water Co.',
+      distance: '1.2 km',
+      rating: 4.6,
+      deliveryTime: '10-15 min',
+      image: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
+      certified: true,
+      price: '₹22/jar',
+      expressDelivery: false,
+      available: true,
+      qualityScore: 8.7,
+    }
+  ];
+
+  const recentOrders = [
+    {
+      id: 1,
+      items: '2x 20L Jars',
+      supplier: 'AquaPure Solutions',
+      date: '2 days ago',
+      total: 100
+    },
+    {
+      id: 2,
+      items: '24x 1L Bottles',
+      supplier: 'Crystal Water Co.',
+      date: '1 week ago',
+      total: 240
+    }
+  ];
+
+  const mockLiveOrder = {
+    id: 'AQ001234',
+    deliveryPerson: {
+      name: 'Rajesh Kumar',
+      phone: '+91 9876543210',
+      location: { latitude: 12.9716, longitude: 77.5946 }
+    },
+    customerLocation: userLocation || { latitude: 12.9716, longitude: 77.5946 },
+    estimatedDelivery: '5-8 mins'
+  };
+
+  const handleVoiceSearch = () => {
+    setIsListening(true);
+    setTimeout(() => {
+      setIsListening(false);
+      setSearchQuery('20 liter water jar');
+      alert('Voice Search: Found "20 liter water jar"');
+    }, 2000);
+  };
+
+  const updateQuickOrderCount = (itemId: string, change: number) => {
+    setQuickOrderCounts(prev => ({
+      ...prev,
+      [itemId]: Math.max(0, prev[itemId] + change)
+    }));
+  };
+
+  const handleQuickOrder = async () => {
+    const totalItems = Object.values(quickOrderCounts).reduce((sum, count) => sum + count, 0);
+    if (totalItems === 0) {
+      alert('No Items: Please select items to order');
+      return;
+    }
+
+    const orderSummary = quickOrderItems
+      .filter(item => quickOrderCounts[item.id] > 0)
+      .map(item => `${quickOrderCounts[item.id]}x ${item.name}`)
+      .join(', ');
+
+    if (confirm(`1-Click Order Confirmed!\n\n${orderSummary}\n\nEstimated delivery: 8-12 minutes\nSupplier: AquaPure Solutions`)) {
+      // Here you would integrate with your database to place the order
+      setQuickOrderCounts({ jar20L: 0, bottle1L: 0, bottle500ml: 0 });
+      
+      // Show live tracking after a short delay
+      setTimeout(() => {
+        setShowLiveTracking(true);
+      }, 2000);
+    }
+  };
+
+  const handleReorder = (order: any) => {
+    if (confirm(`Reorder ${order.items} from ${order.supplier}?\n\nTotal: ₹${order.total}`)) {
+      alert('Order Placed! Estimated delivery: 8-12 minutes');
+    }
+  };
+
+  return (
+    <WaterBackground variant="bubbles" intensity="light">
+      <div className="min-h-screen overflow-y-auto">
+        {/* Header */}
+        <div className="water-gradient px-6 pt-16 pb-6 rounded-b-3xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-500/20" />
+          <div className="relative z-10">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex-1">
+                <p className="text-sm text-white/80 mb-1">Good Morning</p>
+                <h1 className="text-xl font-semibold text-white wave-animation">John Doe</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="w-10 h-10 glass-effect rounded-full flex items-center justify-center water-ripple">
+                  <Bot size={20} className="text-white" />
+                </button>
+                <button className="w-10 h-10 glass-effect rounded-full flex items-center justify-center relative water-ripple">
+                  <Bell size={24} className="text-white" />
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-white">2</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <div className="flex items-center mb-1">
+                <MapPin size={16} className="text-white mr-2" />
+                <p className="text-xs text-white/80">Delivering to: Home</p>
+              </div>
+              <p className="text-sm font-medium text-white">123 Main Street, Bangalore</p>
+            </div>
+
+            <div className="flex items-center water-card rounded-2xl px-4 py-1 mb-3">
+              <Search size={20} className="text-gray-500 mr-3" />
+              <input
+                type="text"
+                placeholder="Search for water suppliers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 py-3 text-base text-gray-900 bg-transparent outline-none"
+              />
+              <button 
+                onClick={handleVoiceSearch}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                  isListening ? 'bg-red-600' : 'bg-blue-50'
+                }`}
+              >
+                <Mic size={20} className={isListening ? "text-white" : "text-blue-600"} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center glass-effect rounded-xl py-2 px-4">
+              <Timer size={16} className="text-white mr-2" />
+              <span className="text-white text-xs font-semibold">10-Minute Express Delivery Available</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex justify-between px-6 mt-5 gap-3">
+          <button className="flex-1 water-card py-4 rounded-2xl droplet-shadow">
+            <Volume2 size={20} className="text-blue-600 mx-auto mb-1" />
+            <span className="text-xs font-semibold text-gray-900 block">Voice Order</span>
+          </button>
+          
+          <button className="flex-1 water-card py-4 rounded-2xl droplet-shadow">
+            <ScanLine size={20} className="text-green-600 mx-auto mb-1" />
+            <span className="text-xs font-semibold text-gray-900 block">Scan & Order</span>
+          </button>
+          
+          <button className="flex-1 water-card py-4 rounded-2xl droplet-shadow">
+            <Bot size={20} className="text-purple-600 mx-auto mb-1" />
+            <span className="text-xs font-semibold text-gray-900 block">AI Assistant</span>
+          </button>
+        </div>
+
+        {/* AI Stock Reminder */}
+        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 mx-6 mt-5 rounded-2xl p-4 flex items-center border-l-4 border-yellow-500 droplet-shadow">
+          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 water-ripple">
+            <Brain size={20} className="text-yellow-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-yellow-800 mb-1">AI Stock Alert</h3>
+            <p className="text-xs text-yellow-800 mb-1">Your 20L Jars might run out in 2 days</p>
+            <p className="text-xs text-yellow-700">Last order: 3 days ago • 89% confidence</p>
+          </div>
+          <button 
+            onClick={() => alert('Quick Order: Order 2x 20L Jars now?')}
+            className="renewable-accent px-3 py-2 rounded-lg"
+          >
+            <span className="text-white text-xs font-semibold">Order Now</span>
+          </button>
+        </div>
+
+        {/* 1-Click Quick Order */}
+        <div className="px-6 mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">1-Click Quick Order</h2>
+          <div className="flex justify-between mb-4">
+            {quickOrderItems.map((item) => (
+              <div key={item.id} className="water-card rounded-2xl p-4 flex-1 mx-1 droplet-shadow">
+                <div className={`w-12 h-12 ${item.color} rounded-full flex items-center justify-center mb-2 mx-auto`}>
+                  {item.icon}
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 text-center mb-1">{item.name}</h3>
+                <p className="text-sm font-bold text-green-600 text-center mb-1">₹{item.price}</p>
+                <p className="text-xs text-gray-500 text-center mb-3">Stock: ~{item.estimatedStock} days</p>
+                
+                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => updateQuickOrderCount(item.id, -1)}
+                    className="w-7 h-7 bg-white rounded-md flex items-center justify-center"
+                  >
+                    <Minus size={16} className="text-gray-600" />
+                  </button>
+                  
+                  <span className="flex-1 text-center text-sm font-semibold text-gray-900">
+                    {quickOrderCounts[item.id]}
+                  </span>
+                  
+                  <button
+                    onClick={() => updateQuickOrderCount(item.id, 1)}
+                    className="w-7 h-7 bg-white rounded-md flex items-center justify-center"
+                  >
+                    <Plus size={16} className="text-gray-600" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <button 
+            onClick={handleQuickOrder}
+            className="w-full water-gradient text-white py-4 rounded-2xl font-semibold flex items-center justify-center droplet-shadow"
+          >
+            <ShoppingCart size={20} className="mr-2" />
+            Order in 1-Click
+          </button>
+        </div>
+
+        {/* Quick Reorder */}
+        <div className="px-6 mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Quick Reorder</h2>
+            <button className="text-sm text-blue-600 font-medium">View All</button>
+          </div>
+          
+          {recentOrders.map((order) => (
+            <button 
+              key={order.id} 
+              onClick={() => handleReorder(order)}
+              className="w-full water-card rounded-2xl p-4 mb-3 flex items-center droplet-shadow"
+            >
+              <div className="flex-1 text-left">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">{order.items}</h3>
+                <p className="text-xs text-gray-600 mb-1">{order.supplier}</p>
+                <p className="text-xs text-gray-500">{order.date}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-base font-bold text-green-600 mb-2">₹{order.total}</p>
+                <div className="flex items-center bg-blue-50 px-3 py-1 rounded-lg">
+                  <RotateCcw size={16} className="text-blue-600 mr-1" />
+                  <span className="text-xs text-blue-600 font-medium">Reorder</span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* AI-Matched Suppliers */}
+        <div className="px-6 mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">AI-Matched Quality Suppliers</h2>
+            <button className="text-sm text-blue-600 font-medium">See All</button>
+          </div>
+          
+          {nearbySuppliers.map((supplier) => (
+            <div key={supplier.id} className="water-card rounded-2xl p-4 mb-3 flex items-center droplet-shadow">
+              <img src={supplier.image} alt={supplier.name} className="w-15 h-15 rounded-full mr-4" />
+              <div className="flex-1">
+                <div className="flex items-center mb-1">
+                  <h3 className="text-base font-semibold text-gray-900 flex-1 mr-2">{supplier.name}</h3>
+                  {supplier.certified && (
+                    <Shield size={16} className="text-green-600" />
+                  )}
+                </div>
+                <div className="flex items-center mb-1">
+                  <Star size={12} className="text-yellow-500 mr-1" />
+                  <span className="text-xs text-gray-600 mr-2">{supplier.rating}</span>
+                  <span className="text-xs text-gray-600">• {supplier.distance}</span>
+                </div>
+                <p className="text-xs text-green-600 font-medium mb-1">{supplier.deliveryTime}</p>
+                <div className="bg-green-50 px-2 py-1 rounded-lg inline-block">
+                  <span className="text-xs text-green-600 font-semibold">Quality Score: {supplier.qualityScore}/10</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold text-green-600 mb-2">{supplier.price}</p>
+                <button className="water-gradient px-4 py-2 rounded-xl">
+                  <span className="text-white text-xs font-semibold">Order</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Live Tracking Demo Button */}
+        <div className="px-6 mt-6">
+          <button
+            onClick={() => setShowLiveTracking(true)}
+            className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-4 rounded-2xl font-semibold flex items-center justify-center droplet-shadow"
+          >
+            <Navigation size={20} className="mr-2" />
+            View Live Tracking Demo
+          </button>
+        </div>
+
+        {/* Eco Impact */}
+        <div className="px-6 mt-6 mb-6">
+          <div className="water-card rounded-2xl p-5 droplet-shadow">
+            <div className="flex items-center mb-4">
+              <Leaf size={24} className="text-green-600 mr-2" />
+              <h2 className="text-base font-semibold text-gray-900">Your Eco Impact</h2>
+            </div>
+            <div className="flex justify-between mb-4">
+              <div className="text-center">
+                <p className="text-xl font-bold text-green-600 mb-1">18</p>
+                <p className="text-xs text-gray-600">Jars Returned</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold text-green-600 mb-1">360</p>
+                <p className="text-xs text-gray-600">Points Earned</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold text-green-600 mb-1">₹90</p>
+                <p className="text-xs text-gray-600">Eco Savings</p>
+              </div>
+            </div>
+            <button className="w-full renewable-accent py-3 rounded-xl">
+              <span className="text-white text-sm font-semibold">Setup Daily Subscription</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Tracking Modal */}
+        <LiveTrackingMap
+          visible={showLiveTracking}
+          onClose={() => setShowLiveTracking(false)}
+          order={mockLiveOrder}
+        />
+      </div>
+    </WaterBackground>
+  );
+}
+</parameter>
+</invoke>
+
+<action type="file" filePath="src/index.css" contentType="content">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import './styles/water-theme.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Enhanced scrollbar with water theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #3b82f6, #0ea5e9);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #2563eb, #0284c7);
+}
+
+/* Smooth transitions with water-like fluidity */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced button hover effects */
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Water-themed focus states */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+
+/* Loading animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Water-themed selection */
+::selection {
+  background: rgba(59, 130, 246, 0.2);
+  color: #1e293b;
+}
+
+/* Enhanced card shadows */
+.card-shadow {
+  box-shadow: 
+    0 4px 6px -1px rgba(59, 130, 246, 0.1),
+    0 2px 4px -1px rgba(59, 130, 246, 0.06);
+}
+
+.card-shadow:hover {
+  box-shadow: 
+    0 20px 25px -5px rgba(59, 130, 246, 0.1),
+    0 10px 10px -5px rgba(59, 130, 246, 0.04);
+}
+
+/* Responsive design helpers */
+@media (max-width: 640px) {
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .water-gradient {
+    background: #0066cc;
+  }
+  
+  .fresh-gradient {
+    background: #006600;
+  }
+  
+  .water-card {
+    border: 2px solid #000;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(to bottom, #0f172a, #1e293b);
+    color: #f8fafc;
+  }
+  
+  .water-card {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+}
+</parameter>
+</invoke>
+
+<action type="file" filePath="package.json" contentType="content">
+{
+  "name": "aqualink-water-delivery",
+  "main": "index.js",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "lucide-react": "^0.294.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/google.maps": "^3.54.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.1.1",
+    "eslint": "^8.53.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  }
+}
+</parameter>
+</invoke>
+
+<action type="shell">
+<command>npm install</command>
+</action>
+
+<action type="start">
+<command>npm run dev</command>
+</action>
