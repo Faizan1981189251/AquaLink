@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -56,10 +56,16 @@ function AppRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    // Ensure CSS is loaded
+    document.body.classList.add('loaded');
+    document.body.classList.remove('loading');
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen full-height water-gradient">
           <AppRoutes />
         </div>
       </Router>
